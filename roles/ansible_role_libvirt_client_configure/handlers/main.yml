@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for ansible_role_libvirt_client_configure
+- name: "Reload sshd"
+  ansible.builtin.systemd_service:
+    name: sshd.service
+    state: reloaded
+- name: "Restart systemd-journald service"
+  ansible.builtin.service:
+    name: systemd-journald
+    state: restarted

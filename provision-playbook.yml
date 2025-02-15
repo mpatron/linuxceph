@@ -1,0 +1,23 @@
+---
+- name: Playbook to configure VM libvirt
+  hosts: all
+  become: true
+
+  vars:
+    # The playblook need to have a the number of VM with --extra-var "VMCOUNT=xxx"
+    # It is send by the Vagrantfile
+    VMCOUNT: "{{ VMCOUNT }}"
+
+  roles:
+  - role: ansible_role_libvirt_client_configure
+    vars:
+      VMCOUNT: "{{ VMCOUNT }}"
+
+  tasks:
+    - name: Printing Fact Variables
+      ansible.builtin.debug:
+        msg: "The value {{ VMCOUNT }} of OS Family is {{ item.prop }} [ {{ item.value }} ]"
+      with_items:
+        - { prop: 'ansible_os_family', value: "{{ ansible_os_family }}" }
+        - { prop: 'ansible_distribution', value: "{{ ansible_distribution }}" }
+        - { prop: 'ansible_distribution_major_version', value: "{{ ansible_distribution_major_version }}" }

@@ -1,0 +1,200 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for ansible_role_libvirt_client_configure
+
+## sudo sed -i '/127.0.1.1/d' /etc/hosts
+- name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: absent
+    regexp: '^127.0.1.1'
+    backup: true
+
+## sudo sed -i -e "\\#PasswordAuthentication no# s#PasswordAuthentication no#PasswordAuthentication yes#g" /etc/ssh/sshd_config
+- name: Replace a localhost entry searching for a literal string to avoid escaping
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PasswordAuthentication'
+    line: PasswordAuthentication yes
+    backup: true
+  notify:
+    - "Reload sshd"
+
+- name: Value of VMCOUNT
+  ansible.builtin.debug:
+    msg: "VMCOUNT = {{ VMCOUNT }}"
+
+- name: Values for VMCOUNT
+  ansible.builtin.debug:
+    msg: "item = {{ item }}"
+  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+
+# for N in {0..#{VM_COUNT-1}}; do
+# [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]] && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
+# done
+- name: Charging /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^"192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"'
+    line: "192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"
+    backup: true
+  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+
+
+# Upgrade all packages
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+    update_only: true
+- name: Install a list of packages no present
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+      - java-1.8.0-openjdk-headless
+      - java-1.8.0-openjdk-devel
+      - java-1.8.0-openjdk
+      - java-11-openjdk-headless
+      - java-11-openjdk-devel
+      - java-11-openjdk
+      - java-17-openjdk-headless
+      - java-17-openjdk-devel
+      - java-17-openjdk
+      - java-21-openjdk-headless
+      - java-21-openjdk-devel
+      - java-21-openjdk
+- name: Install a list of packages with a list variable
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - sshpass
+      - bash-completion
+      - ca-certificates
+      - unzip
+      - curl
+# Journald for OS type RedHat
+- name: Journald SystemMaxUse
+  community.general.ini_file:
+    path: /etc/systemd/journald.conf
+    section: Journal
+    option: Storage
+    value: persistent
+    mode: '0644'
+    state: present
+    backup: true
+  notify: "Restart systemd-journald service"
+- name: Journald SystemMaxUse
+  community.general.ini_file:
+    path: /etc/systemd/journald.conf
+    section: Journal
+    option: SystemMaxUse
+    value: 4G
+    mode: '0644'
+    state: present
+    backup: true
+  notify: "Restart systemd-journald service"
+- name: Journald SystemMaxFileSize
+  community.general.ini_file:
+    path: /etc/systemd/journald.conf
+    section: Journal
+    option: SystemMaxFileSize
+    value: 500M
+    mode: '0644'
+    state: present
+    backup: true
+  notify: "Restart systemd-journald service"
+## Keep facts to stop firewall to down
+- name: Recupération du service facts
+  ansible.builtin.service_facts:
+- name: Stop service firewalld, if started
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
+  when: ansible_facts.services["firewalld.service"] is defined
+- name: Copy id_ed25519
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/id_ed25519"
+    dest: "/home/vagrant/.ssh/id_ed25519"
+    owner: vagrant
+    group: vagrant
+    mode: '0600'
+- name: Copy id_ed25519.pub
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/id_ed25519.pub"
+    dest: "/home/vagrant/.ssh/id_ed25519.pub"
+    owner: vagrant
+    group: vagrant
+    mode: '0600'
+# grep -q --no-messages "AAaAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE" /home/vagrant/.ssh/authorized_keys && echo "Deja present dans /home/vagrant/.ssh/authorized_keys" 
+#   || bash -c 'echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0" >> /home/vagrant/.ssh/authorized_keys'
+- name: Add id_ed25519 in ~/.ssh/authorized_keys
+  ansible.builtin.lineinfile:
+    path: "/home/vagrant/.ssh/authorized_keys"
+    regexp: '^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0'
+    line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0"
+    backup: true
+
+#     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
+#     echo "    Hostname 192.168.56.14${N}" | sudo tee -a /home/vagrant/.ssh/config
+#     echo "    StrictHostKeyChecking no" | sudo tee -a /home/vagrant/.ssh/config
+- name: Ensure file /home/vagrant/.ssh/config exists
+  copy:
+    content: ""
+    dest: /home/vagrant/.ssh/config
+    force: false
+    group: vagrant
+    owner: vagrant
+    mode: 0600
+- name: Add block lines to /home/vagrant/.ssh/config
+  ansible.builtin.blockinfile:
+    path: /home/vagrant/.ssh/config
+    append_newline: true
+    prepend_newline: true
+    block: |
+      Host node{{ item }}
+          Hostname 192.168.56.14{{ item }}
+          StrictHostKeyChecking no
+  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+
+# - name: Sudoers nopassword for mpatron
+#   ansible.builtin.copy:
+#     src: "{{ role_path }}/files/sudoers.d/mpatron"
+#     dest: /etc/sudoers.d/mpatron
+#     owner: root
+#     group: root
+#     mode: '0644'
+# - name: Copy proxy.sh
+#   ansible.builtin.copy:
+#     src: "{{ role_path }}/files/proxy.sh"
+#     dest: /etc/profile.d/proxy.sh
+#     owner: root
+#     group: root
+#     mode: '0755'
+# ## Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files
+# - name: Recuperation du home de java
+#   ansible.builtin.shell:
+#     cmd: echo $(dirname $(readlink -f $(which java)))
+#   register: my_output
+#   changed_when: my_output.rc != 0
+# - name: Setting host facts using home java
+#   ansible.builtin.set_fact:
+#     java_bin_path: "{{ my_output.stdout }}"
+# - name: Copy local_policy.jar
+#   ansible.builtin.copy:
+#     src: "{{ role_path }}/files/UnlimitedJCEPolicyJDK8/local_policy.jar"
+#     dest: "{{ java_bin_path }}/../lib/security"
+#     owner: root
+#     group: root
+#     mode: '0644'
+# - name: Copy US_export_policy.jar
+#   ansible.builtin.copy:
+#     src: "{{ role_path }}/files/UnlimitedJCEPolicyJDK8/US_export_policy.jar"
+#     dest: "{{ java_bin_path }}/../lib/security"
+#     owner: root
+#     group: root
+#     mode: '0644'
