@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # tasks file for ansible_role_libvirt_client_configure
 
@@ -20,17 +20,18 @@
   notify:
     - "Reload sshd"
 
-- name: Value of VMCOUNT
+- name: Value of ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
-    msg: "VMCOUNT = {{ VMCOUNT }}"
+    msg: "ansible_role_libvirt_client_configure_vm_count = {{ ansible_role_libvirt_client_configure_vm_count }}"
 
-- name: Values for VMCOUNT
+- name: Values for ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
     msg: "item = {{ item }}"
-  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
 
 # for N in {0..#{VM_COUNT-1}}; do
-# [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]] && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
+# [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
+#   && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
 # done
 - name: Charging /etc/hosts
   ansible.builtin.lineinfile:
@@ -38,7 +39,7 @@
     regexp: '^"192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"'
     line: "192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"
     backup: true
-  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
 
 
 # Upgrade all packages
@@ -119,47 +120,56 @@
 - name: Copy id_ed25519
   ansible.builtin.copy:
     src: "{{ role_path }}/files/id_ed25519"
-    dest: "/home/vagrant/.ssh/id_ed25519"
-    owner: vagrant
-    group: vagrant
+    dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/id_ed25519"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0600'
 - name: Copy id_ed25519.pub
   ansible.builtin.copy:
     src: "{{ role_path }}/files/id_ed25519.pub"
-    dest: "/home/vagrant/.ssh/id_ed25519.pub"
-    owner: vagrant
-    group: vagrant
+    dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/id_ed25519.pub"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0600'
-# grep -q --no-messages "AAaAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE" /home/vagrant/.ssh/authorized_keys && echo "Deja present dans /home/vagrant/.ssh/authorized_keys" 
-#   || bash -c 'echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0" >> /home/vagrant/.ssh/authorized_keys'
+#  grep -q --no-messages "AAaAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE" /home/vagrant/.ssh/authorized_keys
+#  && echo "Deja present dans /home/vagrant/.ssh/authorized_keys"
+#    || bash -c 'echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0"
+#  >> /home/vagrant/.ssh/authorized_keys'
 - name: Add id_ed25519 in ~/.ssh/authorized_keys
   ansible.builtin.lineinfile:
-    path: "/home/vagrant/.ssh/authorized_keys"
-    regexp: '^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0'
-    line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0"
+    path: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/authorized_keys"
+    regexp: '^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w {{ ansible_role_libvirt_client_configure_adminuser }}@node0'
+    line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w {{ ansible_role_libvirt_client_configure_adminuser }}@node0"
     backup: true
 
 #     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
 #     echo "    Hostname 192.168.56.14${N}" | sudo tee -a /home/vagrant/.ssh/config
 #     echo "    StrictHostKeyChecking no" | sudo tee -a /home/vagrant/.ssh/config
-- name: Ensure file /home/vagrant/.ssh/config exists
-  copy:
+- name: Ensure file exists ~/.ssh/config
+  ansible.builtin.copy:
     content: ""
-    dest: /home/vagrant/.ssh/config
+    dest: /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
     force: false
-    group: vagrant
-    owner: vagrant
-    mode: 0600
-- name: Add block lines to /home/vagrant/.ssh/config
-  ansible.builtin.blockinfile:
-    path: /home/vagrant/.ssh/config
-    append_newline: true
-    prepend_newline: true
-    block: |
-      Host node{{ item }}
-          Hostname 192.168.56.14{{ item }}
-          StrictHostKeyChecking no
-  with_sequence: start=0 end={{ VMCOUNT - 1 }}
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    mode: '0600'
+#  - name: Add block lines to /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
+#    ansible.builtin.blockinfile:
+#      path: /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
+#      append_newline: true
+#      prepend_newline: true
+#      block: |
+#        Host node{{ item }}
+#            Hostname 192.168.56.14{{ item }}
+#            StrictHostKeyChecking no
+#    with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
+- name: Install configure file in ~/.ssh/config
+  ansible.builtin.template:
+    src: "config.j2"
+    dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    mode: '0600'
 
 # - name: Sudoers nopassword for mpatron
 #   ansible.builtin.copy:

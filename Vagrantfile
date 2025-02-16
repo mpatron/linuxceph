@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
         a.verbose = "v"
         a.playbook = "provision-playbook.yml"
         a.extra_vars = {
-          VMCOUNT: VM_COUNT,
+          vm_count: VM_COUNT,
           DOMAIN: DOMAIN
         }
       end
