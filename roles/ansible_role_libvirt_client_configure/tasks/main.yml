@@ -137,10 +137,11 @@
     name: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     shell: "/bin/bash"
     password: "{{ ansible_role_libvirt_client_configure_adminuser | password_hash('sha512') }}" # NE FONCTIONNE PAS CAR PAS DE passlib
+    update_password: on_create
     # echo $(mkpasswd --method=sha-512 'demo')
     # password: "$6$DkvtO7X1xjcHZ0LH$.1n5ahdjK1gZ8z7H6K0q6l9LU3Qte7CLpk9CVOTfpgdHq0M/o5aSyMlyXi49GPfzhQV2sEC0x2ald97o06UvW1"
     groups: "wheel"
-    # append: true
+    append: true
 - name: Sudoers nopassword for {{ ansible_role_libvirt_client_configure_adminuser }}
   ansible.builtin.template:
     src: "sudoersd.j2"
