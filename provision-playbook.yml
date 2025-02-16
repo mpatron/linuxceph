@@ -6,12 +6,12 @@
   vars:
     # The playblook need to have a the number of VM with --extra-var "vm_count=xxx"
     # It is send by the Vagrantfile
-    ansible_playbook_vm_count: "{{ vm_count | int }}"
+    ansible_playbook_vm_count: "{{ vm_count | default(1) | int }}"
 
   roles:
     - role: ansible_role_libvirt_client_configure
       vars:
-        ansible_role_libvirt_client_configure_vm_count: "{{ ansible_playbook_vm_count | int }}"
+        ansible_role_libvirt_client_configure_vm_count: "{{ vm_count }}"
 
   tasks:
     - name: Printing Fact Variables
