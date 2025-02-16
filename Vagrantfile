@@ -30,11 +30,11 @@ Vagrant.configure("2") do |config|
         a.verbose = "v"
         a.playbook = "provision-playbook.yml"
         a.extra_vars = {
-          vm_count: VM_COUNT,
-          DOMAIN: DOMAIN
+          "vm_count": VM_COUNT,
+          "DOMAIN": DOMAIN
         }
       end
-
+# '{"version":"1.23.45","other_variable":"foo"}'
 
 #       node.vm.provision "shell", run: "always", inline: <<-SHELL1
 #   for N in {0..#{VM_COUNT-1}}; do

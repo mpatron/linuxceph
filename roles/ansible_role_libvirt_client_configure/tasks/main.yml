@@ -2,6 +2,27 @@
 ---
 # tasks file for ansible_role_libvirt_client_configure
 
+#  - name: Create converted fact from input (mixed)
+#    set_fact:
+#        l_ansible_role_libvirt_client_configure_vm_count: "{{ ansible_role_libvirt_client_configure_vm_count | int }}"
+#  - name: Show converted value (mixed)
+#    debug:
+#        msg: |
+#          "valueur {{ ansible_role_libvirt_client_configure_vm_count | int }}"
+#          "donc {{ vars[ansible_role_libvirt_client_configure_vm_count] }}"
+#          "Alors {{ vars[ansible_role_libvirt_client_configure_vm_count] is number }}"
+- name: Value ===> of ansible_role_libvirt_client_configure_vm_count
+  ansible.builtin.debug:
+    msg: "ansible_role_libvirt_client_configure_vm_count = {{ ansible_role_libvirt_client_configure_vm_count | int }}"
+- name: Check if converted integer is greater than 5
+  ansible.builtin.debug:
+    msg: "The integer is greater than 5"
+  when: "{{ ansible_role_libvirt_client_configure_vm_count | int > 5 }}"
+- name: Values for ansible_role_libvirt_client_configure_vm_count
+  ansible.builtin.debug:
+    msg: "item = {{ item }}"
+  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
+
 ## sudo sed -i '/127.0.1.1/d' /etc/hosts
 - name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
   ansible.builtin.lineinfile:
@@ -20,15 +41,6 @@
   notify:
     - "Reload sshd"
 
-- name: Value of ansible_role_libvirt_client_configure_vm_count
-  ansible.builtin.debug:
-    msg: "ansible_role_libvirt_client_configure_vm_count = {{ ansible_role_libvirt_client_configure_vm_count }}"
-
-- name: Values for ansible_role_libvirt_client_configure_vm_count
-  ansible.builtin.debug:
-    msg: "item = {{ item }}"
-  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
-
 # for N in {0..#{VM_COUNT-1}}; do
 # [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
 #   && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
@@ -40,7 +52,6 @@
     line: "192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"
     backup: true
   with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
-
 
 # Upgrade all packages
 - name: Upgrade all packages
