@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # defaults file for ansible_role_libvirt_client_configure
-ansible_role_libvirt_client_configure_adminuser: vagrant
+ansible_role_libvirt_client_configure_adminuser: mpatron
 ansible_role_libvirt_client_configure_vm_count : 1

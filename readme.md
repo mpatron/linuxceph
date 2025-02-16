@@ -24,3 +24,12 @@ ansible [core 2.15.12]
 (venv) [mpatron@node0 ~]$ deactivate
 [mpatron@node0 ~]$
 ~~~
+
+Dépendances :
+Alors en fait rien sur galaxy, mais pour pip, il y en a une sur importante, c'est passlib pour les mots de passe.
+
+~~~bash
+ansible-galaxy collection install -r requirements.yml --ignore-certs
+ansible-galaxy role install -r requirements.yml  --ignore-certs
+pip install -r requirements.txt
+~~~

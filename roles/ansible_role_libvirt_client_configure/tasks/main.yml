@@ -128,6 +128,33 @@
     state: stopped
     enabled: false
   when: ansible_facts.services["firewalld.service"] is defined
+# User admin
+# sudo bash -c "printf '%s\n%s\n' 'hadoop' 'hadoop' | passwd hadoop"
+# printf '%s\n' "hadoop" | mkpasswd -s --method=sha-512
+# ansible hadoop --become --module-name raw --args "printf '%s\n%s\n' 'hadoop' 'hadoop' | passwd hadoop"
+- name: Adding users
+  ansible.builtin.user:
+    name: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    shell: "/bin/bash"
+    password: "{{ ansible_role_libvirt_client_configure_adminuser | password_hash('sha512') }}" # NE FONCTIONNE PAS CAR PAS DE passlib
+    # echo $(mkpasswd --method=sha-512 'demo')
+    # password: "$6$DkvtO7X1xjcHZ0LH$.1n5ahdjK1gZ8z7H6K0q6l9LU3Qte7CLpk9CVOTfpgdHq0M/o5aSyMlyXi49GPfzhQV2sEC0x2ald97o06UvW1"
+    groups: "wheel"
+    # append: true
+- name: Sudoers nopassword for {{ ansible_role_libvirt_client_configure_adminuser }}
+  ansible.builtin.template:
+    src: "sudoersd.j2"
+    dest: /etc/sudoers.d/{{ ansible_role_libvirt_client_configure_adminuser }}
+    owner: root
+    group: root
+    mode: '0644'
+- name: Create a directory if it does not exist ~/.ssh
+  ansible.builtin.file:
+    path: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    state: directory
+    mode: '0700'
 - name: Copy id_ed25519
   ansible.builtin.copy:
     src: "{{ role_path }}/files/id_ed25519"
@@ -136,8 +163,8 @@
     group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0600'
 - name: Copy id_ed25519.pub
-  ansible.builtin.copy:
-    src: "{{ role_path }}/files/id_ed25519.pub"
+  ansible.builtin.template:
+    src: "id_ed25519.pub.j2"
     dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/id_ed25519.pub"
     owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
@@ -146,6 +173,14 @@
 #  && echo "Deja present dans /home/vagrant/.ssh/authorized_keys"
 #    || bash -c 'echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w vagrant@node0"
 #  >> /home/vagrant/.ssh/authorized_keys'
+- name: Ensure file exists ~/.ssh/authorized_keys
+  ansible.builtin.copy:
+    content: ""
+    dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/authorized_keys"
+    force: false
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    mode: '0600'
 - name: Add id_ed25519 in ~/.ssh/authorized_keys
   ansible.builtin.lineinfile:
     path: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/authorized_keys"
