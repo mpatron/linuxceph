@@ -33,3 +33,20 @@ ansible-galaxy collection install -r requirements.yml --ignore-certs
 ansible-galaxy role install -r requirements.yml  --ignore-certs
 pip install -r requirements.txt
 ~~~
+
+~~~bash
+source ~/venv/bin/activate
+vagrant up --provision --provider=libvirt
+~~~
+
+git clone https://github.com/ceph/ceph-ansible.git
+cd ceph-ansible/
+git tag
+git checkout stable-9.0
+
+
+Générer le fichier de configuration avec toutes les valeurs par default :
+
+~~~bash
+ansible-config init --disabled -t all > ansible-all-defaults.cfg
+~~~
