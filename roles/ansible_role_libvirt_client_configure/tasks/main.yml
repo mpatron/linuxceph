@@ -200,16 +200,6 @@
     group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0600'
-#  - name: Add block lines to /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
-#    ansible.builtin.blockinfile:
-#      path: /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
-#      append_newline: true
-#      prepend_newline: true
-#      block: |
-#        Host node{{ item }}
-#            Hostname 192.168.56.14{{ item }}
-#            StrictHostKeyChecking no
-#    with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
 - name: Install configure file in ~/.ssh/config
   ansible.builtin.template:
     src: "config.j2"
@@ -218,13 +208,22 @@
     group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0600'
 
-# - name: Sudoers nopassword for mpatron
-#   ansible.builtin.copy:
-#     src: "{{ role_path }}/files/sudoers.d/mpatron"
-#     dest: /etc/sudoers.d/mpatron
-#     owner: root
-#     group: root
-#     mode: '0644'
+- name: Create a directory if it does not exist ~/bin
+  ansible.builtin.file:
+    path: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/bin"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    state: directory
+    mode: '0700'
+- name: Copy maj.sh
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/maj.sh"
+    dest: "/home/{{ ansible_role_libvirt_client_configure_adminuser }}/bin/maj.sh"
+    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
+    mode: '0700'
+
+
 # - name: Copy proxy.sh
 #   ansible.builtin.copy:
 #     src: "{{ role_path }}/files/proxy.sh"
