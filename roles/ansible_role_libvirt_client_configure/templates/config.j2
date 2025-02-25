@@ -1,4 +1,4 @@
-{% for item in range(0, ansible_role_libvirt_client_configure_vm_count ) %}
+{% for item in range(1, ansible_role_libvirt_client_configure_vm_count -1 ) %}
 Host node{{ item }}
     Hostname 192.168.56.14{{ item }}
     StrictHostKeyChecking no

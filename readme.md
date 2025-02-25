@@ -26,7 +26,7 @@ ansible [core 2.15.12]
 ~~~
 
 Dépendances :
-Alors en fait rien sur galaxy, mais pour pip, il y en a une sur importante, c'est passlib pour les mots de passe.
+Alors en fait rien sur galaxy, mais pour pip, il y en a une sur importante, c'est passlib pour les mots de passe. Ne pas oublier de faire "pip install -r requirements.txt".
 
 ~~~bash
 ansible-galaxy collection install -r requirements.yml --ignore-certs
@@ -37,6 +37,11 @@ ansible-galaxy install --force --role-file requirements.yml
 
 ~~~bash
 source ~/venv/bin/activate
+# ansible-galaxy collection install -r requirements.yml --ignore-certs
+# ansible-galaxy role install -r requirements.yml  --ignore-certs
+# En une commande :
+ansible-galaxy install --force --role-file --ignore-certs requirements.yml
+pip install -r requirements.txt
 vagrant up --provision --provider=libvirt
 ~~~
 

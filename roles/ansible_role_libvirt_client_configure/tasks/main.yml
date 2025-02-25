@@ -21,7 +21,7 @@
 - name: Values for ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
     msg: "item = {{ item }}"
-  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
+  with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
 
 ## sudo sed -i '/127.0.1.1/d' /etc/hosts
 - name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
@@ -51,7 +51,7 @@
     regexp: '^"192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"'
     line: "192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"
     backup: true
-  with_sequence: start=0 end={{ ansible_role_libvirt_client_configure_vm_count - 1 }}
+  with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
 
 # Upgrade all packages
 - name: Upgrade all packages
@@ -127,7 +127,7 @@
     name: firewalld
     state: stopped
     enabled: false
-  when: ansible_facts.services["firewalld.service"] is defined
+  when: ansible_facts.services['firewalld.service'] is defined
 # User admin
 # sudo bash -c "printf '%s\n%s\n' 'hadoop' 'hadoop' | passwd hadoop"
 # printf '%s\n' "hadoop" | mkpasswd -s --method=sha-512
