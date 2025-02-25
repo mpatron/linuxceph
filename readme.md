@@ -32,6 +32,7 @@ Alors en fait rien sur galaxy, mais pour pip, il y en a une sur importante, c'es
 ansible-galaxy collection install -r requirements.yml --ignore-certs
 ansible-galaxy role install -r requirements.yml  --ignore-certs
 pip install -r requirements.txt
+ansible-galaxy install --force --role-file requirements.yml
 ~~~
 
 ~~~bash
@@ -39,11 +40,14 @@ source ~/venv/bin/activate
 vagrant up --provision --provider=libvirt
 ~~~
 
+## Ceph install
+
+~~~bash
 git clone https://github.com/ceph/ceph-ansible.git
 cd ceph-ansible/
 git tag
 git checkout stable-9.0
-
+~~~
 
 Générer le fichier de configuration avec toutes les valeurs par default :
 
