@@ -1,7 +1,5 @@
-# SPDX-License-Identifier: MIT-0
 ---
 # tasks file for ansible_role_libvirt_client_configure
-
 #  - name: Create converted fact from input (mixed)
 #    set_fact:
 #        l_ansible_role_libvirt_client_configure_vm_count: "{{ ansible_role_libvirt_client_configure_vm_count | int }}"
