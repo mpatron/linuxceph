@@ -22,5 +22,6 @@ derby.log
 
 .vscode
 .vagrant
+.ansible
 
 *.exclude
