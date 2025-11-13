@@ -4,7 +4,7 @@
 
 ![Cepth architecture](images/cepth_basic_cluster.svg "Cepth architecture")
 
-https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/
+[https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/](https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/)
 
 [vagrant.md](docs/vagrant.md)
 
