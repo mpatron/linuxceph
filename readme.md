@@ -4,6 +4,8 @@
 
 ![Cepth architecture](images/cepth_basic_cluster.svg "Cepth architecture")
 
+https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/
+
 [vagrant.md](docs/vagrant.md)
 
 ~~~bash
@@ -33,9 +35,11 @@ source ~/venv/bin/activate
 # ansible-galaxy collection install -r requirements.yml --ignore-certs
 # ansible-galaxy role install -r requirements.yml  --ignore-certs
 # En une commande :
-ansible-galaxy install --force --role-file --ignore-certs requirements.yml
+# ansible-galaxy install --force --ignore-certs --role-file requirements.yml
+ansible-galaxy install --role-file requirements.yml
 pip install -r requirements.txt
 vagrant up --provision --provider=libvirt
+vagrant ssh node1
 ~~~
 
 ## Ceph install
