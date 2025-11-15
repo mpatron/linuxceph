@@ -102,7 +102,7 @@
     path: /etc/systemd/journald.conf
     section: Journal
     option: SystemMaxUse
-    value: 4G
+    value: "{{ ansible_role_libvirt_client_configure_journald_system_max_use }}"
     mode: '0644'
     state: present
     backup: true
@@ -112,7 +112,7 @@
     path: /etc/systemd/journald.conf
     section: Journal
     option: SystemMaxFileSize
-    value: 500M
+    value: "{{ ansible_role_libvirt_client_configure_journald_system_max_file_size }}"
     mode: '0644'
     state: present
     backup: true

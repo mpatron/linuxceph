@@ -2,3 +2,5 @@
 # defaults file for ansible_role_libvirt_client_configure
 ansible_role_libvirt_client_configure_adminuser: mpatron
 ansible_role_libvirt_client_configure_vm_count: 1
+ansible_role_libvirt_client_configure_journald_system_max_use: 4G
+ansible_role_libvirt_client_configure_journald_system_max_file_size: 500M
