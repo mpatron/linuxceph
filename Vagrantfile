@@ -5,7 +5,7 @@ VM_RAM = "4096" # 1024 2048 3072 4096 6144 8192
 VM_CPU = 2
 IMAGE = "almalinux/9"
 DOMAIN = "jobjects.net"
-
+DOMAIN_IP_PATTERN = "192.168.56.14"
 Vagrant.configure("2") do |config|
   config.vm.box = IMAGE
   config.vm.box_check_update = false
@@ -24,14 +24,15 @@ Vagrant.configure("2") do |config|
   (1..VM_COUNT).each do |i|
     config.vm.define "node#{i}" do |node|
       node.vm.hostname = "node#{i}.#{DOMAIN}"
-      node.vm.network "private_network", ip: "192.168.56.14#{i}"
+      node.vm.network "private_network", ip: "#{DOMAIN_IP_PATTERN}#{i}"
       node.vm.provision "ansible" do |ansible|
         ansible.verbose = false # default=true ou "-vvv" pour debug
         # ansible.limit = "all"
         ansible.playbook = "provision-playbook.yml"
         ansible.extra_vars = {
           "vm_count": VM_COUNT,
-          "DOMAIN": DOMAIN
+          "vm_domain": DOMAIN,
+          "vm_domain_ip_pattern": DOMAIN_IP_PATTERN
         }
       end
       # if i == VM_COUNT

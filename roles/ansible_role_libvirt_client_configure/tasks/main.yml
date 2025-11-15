@@ -40,14 +40,14 @@
     - "Reload sshd"
 
 # for N in {0..#{VM_COUNT-1}}; do
-# [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
-#   && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
+# [[ ! $(grep "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
+#   && echo $(echo "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
 # done
 - name: Charging /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '^"192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"'
-    line: "192.168.56.14{{ item }} node{{ item }}.{{ DOMAIN }} node{{ item }}"
+    regexp: '^"{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"'
+    line: "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"
     backup: true
   with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
 
@@ -188,7 +188,7 @@
     backup: true
 
 #     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
-#     echo "    Hostname 192.168.56.14${N}" | sudo tee -a /home/vagrant/.ssh/config
+#     echo "    Hostname {{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N}" | sudo tee -a /home/vagrant/.ssh/config
 #     echo "    StrictHostKeyChecking no" | sudo tee -a /home/vagrant/.ssh/config
 - name: Ensure file exists ~/.ssh/config
   ansible.builtin.copy:

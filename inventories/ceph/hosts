@@ -2,10 +2,6 @@
 # ansible hadoop -i inventories/jobjects --become --module-name raw --args "uptime -s"
 all:
   hosts:
-    node0.jobjects.net:
-      ansible_host: 192.168.56.140
-      ansible_ssh_user: vagrant
-      ansible_ssh_pass: vagrant
     node1.jobjects.net:
       ansible_host: 192.168.56.141
       ansible_ssh_user: vagrant
@@ -41,27 +37,21 @@ all:
   children:
     hadoop:
       children:
-        namenodes: # Une et unique machine obligatoire
-        resourcemanagers: # Une et unique machine obligatoire
-        datanodes: # Une ou plusieur machine obligatoire
-        hiveservers: # Une et unique machine obligatoire
+        cephadmins: # Une et unique machine obligatoire
+        cephmonitors: # Une et unique machine obligatoire
+        cephdisks: # Une ou plusieur machine obligatoire
       vars:
 #        no_variable_here: "in but in files"
-    namenodes:
-      hosts:
-        node0.jobjects.net:
-    resourcemanagers:
+    cephadmins:
       hosts:
         node1.jobjects.net:
-    hiveservers:
+    cephmonitors:
       hosts:
         node1.jobjects.net:
-    datanodes:
-      hosts:
         node2.jobjects.net:
         node3.jobjects.net:
+    cephdisks:
+      hosts:
         node4.jobjects.net:
         node5.jobjects.net:
-    edges:
-      hosts:
-        node1.jobjects.net:
+        node6.jobjects.net:
