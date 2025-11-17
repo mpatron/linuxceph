@@ -47,6 +47,7 @@ vagrant ssh node1
 
 ~~~bash
 ansible-playbook --inventory inventories/ceph --extra-vars "vm_count=6" --extra-vars "vm_domain=jobjects.net" --extra-vars "vm_domain_ip_pattern=192.168.56.14" provision-playbook.yml
+# --start-at-task="Install the latest version of podman"
 
 git clone https://github.com/ceph/ceph-ansible.git
 cd ceph-ansible/
