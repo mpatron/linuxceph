@@ -1,11 +1,11 @@
 # readme (on working 🚧 🏗️ ...)
 
-- [https://docs.redhat.com/en/documentation/red_hat_ceph_storage/4/html/installation_guide/red-hat-ceph-storage-considerations-and-recommendations#tuning-considerations-for-the-linux-kernel-when-running-ceph_install](https://docs.redhat.com/en/documentation/red_hat_ceph_storage/4/html/installation_guide/red-hat-ceph-storage-considerations-and-recommendations#tuning-considerations-for-the-linux-kernel-when-running-ceph_install)
-
 ![Cepth architecture](images/cepth_basic_cluster.svg "Cepth architecture")
 
+- [https://docs.redhat.com/en/documentation/red_hat_ceph_storage/4/html/installation_guide/red-hat-ceph-storage-considerations-and-recommendations#tuning-considerations-for-the-linux-kernel-when-running-ceph_install](https://docs.redhat.com/en/documentation/red_hat_ceph_storage/4/html/installation_guide/red-hat-ceph-storage-considerations-and-recommendations#tuning-considerations-for-the-linux-kernel-when-running-ceph_install)
 - [https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/](https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/)
 - [https://hackmd.io/@yujungcheng/Hyu623GKi](https://hackmd.io/@yujungcheng/Hyu623GKi)
+- [https://www.youtube.com/watch?v=3z6uGRl7AKU](https://www.youtube.com/watch?v=3z6uGRl7AKU)
 
 [vagrant.md](docs/vagrant.md)
 
@@ -61,26 +61,28 @@ Générer le fichier de configuration avec toutes les valeurs par default :
 ansible-config init --disabled -t all > ansible-all-defaults.cfg
 ~~~
 
+## Installation de Ceph avec cephadm
 
-
-https://www.youtube.com/watch?v=3z6uGRl7AKU
-
-CEPH_RELEASE=19.2.3
-curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
+~~~bash
+CEPH_RELEASE=19.2.3 curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
   && chmod +x cephadm \
   && sudo mv cephadm /usr/local/bin \
   && sudo chown root:root /usr/local/bin/cephadm
-
-sudo cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
 sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron --allow-fqdn-hostname
+~~~
 
-	     URL: https://node1.jobjects.net:8443/
-	    User: admin
-	Password: 7163hlg8xe
-  G3mBugT3IuXuUWkhktPU
+~~~txt
+URL: https://node1.jobjects.net:8443/
+User: admin
+Password: 7163hlg8xe
+G3mBugT3IuXuUWkhktPU
+~~~
 
+Installation en shell directement dans la VM node1
+
+~~~bash
 # Dans le shell ceph faire :
-for i in {2..6}; do
+for i in {1..6}; do
   sudo /usr/local/bin/cephadm shell -- ceph orch host add node$i.jobjects.net 192.168.56.14$i
 done
 sudo /usr/local/bin/cephadm shell -- ceph orch host ls
@@ -96,33 +98,27 @@ sudo /usr/local/bin/cephadm shell -- ceph orch apply rgw myrgw --placement="2 no
 sudo /usr/local/bin/cephadm shell -- ceph rgw realm bootstrap monrealm grpjobjects jobjects
 sudo /usr/local/bin/cephadm shell -- ceph rgw realm tokens
 sudo /usr/local/bin/cephadm shell -- radosgw-admin user create --uid="myuser" --display-name="Mon Utilisateur RGW"
+~~~
 
-
-sudo /usr/local/bin/cephadm shell
-[ceph: root@node1 /]# ceph -s
+~~~bash
+[mpatron@node1 ~]$ sudo /usr/local/bin/cephadm shell -- ceph --status
+Inferring fsid 62501170-c3b6-11f0-86bf-525400285b89
+Inferring config /var/lib/ceph/62501170-c3b6-11f0-86bf-525400285b89/mon.node1/config
+Using ceph image with id 'aade1b12b8e6' and tag 'v19' created on 2025-07-17 19:53:27 +0000 UTC
+quay.io/ceph/ceph@sha256:af0c5903e901e329adabe219dfc8d0c3efc1f05102a753902f33ee16c26b6cee
   cluster:
-    id:     6de2f8cc-c39d-11f0-a21d-5254000e71dc
-    health: HEALTH_WARN
-            OSD count 0 < osd_pool_default_size 3
+    id:     62501170-c3b6-11f0-86bf-525400285b89
+    health: HEALTH_OK
  
   services:
-    mon: 2 daemons, quorum node1,node2 (age 110s)
-    mgr: node1.wnulmo(active, since 31m), standbys: node2.muufcc
-    osd: 0 osds: 0 up, 0 in
+    mon: 5 daemons, quorum node1,node2,node3,node6,node5 (age 40m)
+    mgr: node1.ksnxqh(active, since 22m), standbys: node2.yzpobn
+    osd: 12 osds: 12 up (since 32m), 12 in (since 32m)
+    rgw: 4 daemons active (4 hosts, 2 zones)
  
   data:
-    pools:   0 pools, 0 pgs
-    objects: 0 objects, 0 B
-    usage:   0 B used, 0 B / 0 B avail
-    pgs:     
- 
-[ceph: root@node1 /]# ceph orch host ls
-HOST                ADDR            LABELS  STATUS  
-node1.jobjects.net  192.168.56.141  _admin          
-node2.jobjects.net  192.168.56.142                  
-node3.jobjects.net  192.168.56.143                  
-node4.jobjects.net  192.168.56.144                  
-node5.jobjects.net  192.168.56.145                  
-node6.jobjects.net  192.168.56.146                  
-6 hosts in cluster
-
+    pools:   10 pools, 289 pgs
+    objects: 424 objects, 467 KiB
+    usage:   879 MiB used, 66 GiB / 67 GiB avail
+    pgs:     289 active+clean
+~~~
