@@ -21,7 +21,7 @@
   tasks:
     - name: Printing Fact Variables
       ansible.builtin.debug:
-        msg: "The value {{ ansible_playbook_vm_count }} of OS Family is {{ item.prop }} [ {{ item.value }} ]"
+        msg: "The value {{ vm_count | default(1) | int }} of OS Family is {{ item.prop }} [ {{ item.value }} ]"
       with_items:
         - { prop: 'ansible_os_family', value: "{{ ansible_os_family }}" }
         - { prop: 'ansible_distribution', value: "{{ ansible_distribution }}" }
