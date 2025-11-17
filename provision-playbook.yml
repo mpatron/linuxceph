@@ -29,6 +29,9 @@
         - { prop: 'ansible_os_family', value: "{{ ansible_os_family }}" }
         - { prop: 'ansible_distribution', value: "{{ ansible_distribution }}" }
         - { prop: 'ansible_distribution_major_version', value: "{{ ansible_distribution_major_version }}" }
+    - name: Définir le fuseau horaire sur Europe/Paris
+      community.general.timezone:
+        name: Europe/Paris
     - name: Install the latest version of podman
       ansible.builtin.dnf:
         name:
