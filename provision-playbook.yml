@@ -32,9 +32,11 @@
     - name: Install the latest version of podman
       ansible.builtin.dnf:
         name:
-          - podman
           - vim
+          # Ceph dependencies
+          - podman
           - chrony
+          - lvm2
         state: present
         update_cache: true
       when: ansible_os_family == "RedHat"

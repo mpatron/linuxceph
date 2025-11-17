@@ -5,6 +5,7 @@
 ![Cepth architecture](images/cepth_basic_cluster.svg "Cepth architecture")
 
 [https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/](https://kifarunix.com/how-to-deploy-ceph-storage-cluster-on-almalinux/)
+https://hackmd.io/@yujungcheng/Hyu623GKi
 
 [vagrant.md](docs/vagrant.md)
 
@@ -45,6 +46,8 @@ vagrant ssh node1
 ## Ceph install
 
 ~~~bash
+ansible-playbook --inventory inventories/ceph provision-playbook.yml
+
 git clone https://github.com/ceph/ceph-ansible.git
 cd ceph-ansible/
 git tag

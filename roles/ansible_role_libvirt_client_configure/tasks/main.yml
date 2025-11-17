@@ -190,14 +190,6 @@
 #     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
 #     echo "    Hostname {{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N}" | sudo tee -a /home/vagrant/.ssh/config
 #     echo "    StrictHostKeyChecking no" | sudo tee -a /home/vagrant/.ssh/config
-- name: Ensure file exists ~/.ssh/config
-  ansible.builtin.copy:
-    content: ""
-    dest: /home/{{ ansible_role_libvirt_client_configure_adminuser }}/.ssh/config
-    force: false
-    group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
-    owner: "{{ ansible_role_libvirt_client_configure_adminuser }}"
-    mode: '0600'
 - name: Install configure file in ~/.ssh/config
   ansible.builtin.template:
     src: "config.j2"
