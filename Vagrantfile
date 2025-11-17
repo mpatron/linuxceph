@@ -16,10 +16,10 @@ Vagrant.configure("2") do |config|
     libvirt.cpus = VM_CPU
     libvirt.nested = true
     libvirt.memory = VM_RAM
-    libvirt.storage :file, :type => 'qcow2', name: "extradisk1", size: "1GB"
-    libvirt.storage :file, :type => 'qcow2', name: "extradisk2", size: "1GB"
-    libvirt.storage :file, :type => 'qcow2', name: "extradisk3", size: "1GB"
-    libvirt.storage :file, :type => 'qcow2', name: "extradisk4", size: "1GB"
+    libvirt.storage :file, :type => 'qcow2', name: "extradisk1", size: "5GB"
+    libvirt.storage :file, :type => 'qcow2', name: "extradisk2", size: "5GB"
+    # libvirt.storage :file, :type => 'qcow2', name: "extradisk3", size: "1GB"
+    # libvirt.storage :file, :type => 'qcow2', name: "extradisk4", size: "1GB"
   end
   (1..VM_COUNT).each do |i|
     config.vm.define "node#{i}" do |node|

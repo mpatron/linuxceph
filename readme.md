@@ -67,7 +67,46 @@ ansible-config init --disabled -t all > ansible-all-defaults.cfg
 CEPH_RELEASE=19.2.3
 curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
   && chmod +x cephadm \
-  && sudo mv cephadm /usr/local/bin
-sudo cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
-sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
+  && sudo mv cephadm /usr/local/bin \
+  && sudo chown root:root /usr/local/bin/cephadm
 
+sudo cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
+sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron --allow-fqdn-hostname
+
+	     URL: https://node1.jobjects.net:8443/
+	    User: admin
+	Password: uldvzbbwsd
+
+sudo /usr/local/bin/cephadm shell
+# Dans le shell ceph faire :
+for i in {2..6}
+do
+   ceph orch host add node$i.jobjects.net 192.168.56.14$i
+done
+[ceph: root@node1 /]# ceph -s
+  cluster:
+    id:     6de2f8cc-c39d-11f0-a21d-5254000e71dc
+    health: HEALTH_WARN
+            OSD count 0 < osd_pool_default_size 3
+ 
+  services:
+    mon: 2 daemons, quorum node1,node2 (age 110s)
+    mgr: node1.wnulmo(active, since 31m), standbys: node2.muufcc
+    osd: 0 osds: 0 up, 0 in
+ 
+  data:
+    pools:   0 pools, 0 pgs
+    objects: 0 objects, 0 B
+    usage:   0 B used, 0 B / 0 B avail
+    pgs:     
+ 
+[ceph: root@node1 /]# ceph orch host ls
+HOST                ADDR            LABELS  STATUS  
+node1.jobjects.net  192.168.56.141  _admin          
+node2.jobjects.net  192.168.56.142                  
+node3.jobjects.net  192.168.56.143                  
+node4.jobjects.net  192.168.56.144                  
+node5.jobjects.net  192.168.56.145                  
+node6.jobjects.net  192.168.56.146                  
+6 hosts in cluster
+sudo /usr/local/bin/cephadm shell -- ceph orch device ls
