@@ -13,7 +13,7 @@
   roles:
     - role: ansible_role_libvirt_client_configure
       vars:
-        ansible_role_libvirt_client_configure_vm_count: "{{ ansible_playbook_vm_count }}"
+        ansible_role_libvirt_client_configure_vm_count: "{{ vm_count | default(1) | int }}"
         ansible_role_libvirt_client_configure_vm_domain: "{{ ansible_playbook_vm_domain }}"
         ansible_role_libvirt_client_configure_vm_domain_ip_pattern: "{{ ansible_playbook_vm_domain_ip_pattern }}"
 
