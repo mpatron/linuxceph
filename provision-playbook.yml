@@ -19,7 +19,7 @@
         swap_file_state: 'absent'
 
   tasks:
-    - name: Printing Fact Variables
+    - name: Printing Fact Variables for the cluster nodes
       ansible.builtin.debug:
         msg: "The value {{ vm_count | default(1) | int }} of OS Family is {{ item.prop }} [ {{ item.value }} ]"
       with_items:
