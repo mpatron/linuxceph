@@ -46,7 +46,7 @@ vagrant ssh node1
 ## Ceph install
 
 ~~~bash
-ansible-playbook --inventory inventories/ceph provision-playbook.yml
+ansible-playbook --inventory inventories/ceph --extra-vars "vm_count=6" --extra-vars "vm_domain=jobjects.net" --extra-vars "vm_domain_ip_pattern=192.168.56.14" provision-playbook.yml
 
 git clone https://github.com/ceph/ceph-ansible.git
 cd ceph-ansible/
