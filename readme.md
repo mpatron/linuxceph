@@ -63,6 +63,7 @@ ansible-config init --disabled -t all > ansible-all-defaults.cfg
 
 
 
+https://www.youtube.com/watch?v=3z6uGRl7AKU
 
 CEPH_RELEASE=19.2.3
 curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
@@ -75,14 +76,29 @@ sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~
 
 	     URL: https://node1.jobjects.net:8443/
 	    User: admin
-	Password: uldvzbbwsd
+	Password: 7163hlg8xe
+  G3mBugT3IuXuUWkhktPU
+
+# Dans le shell ceph faire :
+for i in {2..6}; do
+  sudo /usr/local/bin/cephadm shell -- ceph orch host add node$i.jobjects.net 192.168.56.14$i
+done
+sudo /usr/local/bin/cephadm shell -- ceph orch host ls
+sudo /usr/local/bin/cephadm shell -- ceph orch device ls
+
+for i in {1..6}; do
+  sudo /usr/local/bin/cephadm shell -- ceph orch daemon add osd node$i.jobjects.net:/dev/vdb
+  sudo /usr/local/bin/cephadm shell -- ceph orch daemon add osd node$i.jobjects.net:/dev/vdc
+done
+
+sudo /usr/local/bin/cephadm shell -- ceph mgr module enable rgw
+sudo /usr/local/bin/cephadm shell -- ceph orch apply rgw myrgw --placement="2 node2.jobjects.net node3.jobjects.net"
+sudo /usr/local/bin/cephadm shell -- ceph rgw realm bootstrap monrealm grpjobjects jobjects
+sudo /usr/local/bin/cephadm shell -- ceph rgw realm tokens
+sudo /usr/local/bin/cephadm shell -- radosgw-admin user create --uid="myuser" --display-name="Mon Utilisateur RGW"
+
 
 sudo /usr/local/bin/cephadm shell
-# Dans le shell ceph faire :
-for i in {2..6}
-do
-   ceph orch host add node$i.jobjects.net 192.168.56.14$i
-done
 [ceph: root@node1 /]# ceph -s
   cluster:
     id:     6de2f8cc-c39d-11f0-a21d-5254000e71dc
@@ -109,4 +125,4 @@ node4.jobjects.net  192.168.56.144
 node5.jobjects.net  192.168.56.145                  
 node6.jobjects.net  192.168.56.146                  
 6 hosts in cluster
-sudo /usr/local/bin/cephadm shell -- ceph orch device ls
+
