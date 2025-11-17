@@ -60,3 +60,14 @@ Générer le fichier de configuration avec toutes les valeurs par default :
 ~~~bash
 ansible-config init --disabled -t all > ansible-all-defaults.cfg
 ~~~
+
+
+
+
+CEPH_RELEASE=19.2.3
+curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
+  && chmod +x cephadm \
+  && sudo mv cephadm /usr/local/bin
+sudo cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
+sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron
+
