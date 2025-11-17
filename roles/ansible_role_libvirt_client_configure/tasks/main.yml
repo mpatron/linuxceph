@@ -15,7 +15,7 @@
 - name: Check if converted integer is greater than 3
   ansible.builtin.debug:
     msg: "The integer is greater than 3"
-  when: ansible_role_libvirt_client_configure_vm_count > 3
+  when: ansible_role_libvirt_client_configure_vm_count | int > 3
 - name: Values for ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
     msg: "item = {{ item }}"
