@@ -12,10 +12,10 @@
 - name: Value ===> of ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
     msg: "ansible_role_libvirt_client_configure_vm_count = {{ ansible_role_libvirt_client_configure_vm_count | int }}"
-- name: Check if converted integer is greater than 5
+- name: Check if converted integer is greater than 6
   ansible.builtin.debug:
-    msg: "The integer is greater than 5"
-  when: ansible_role_libvirt_client_configure_vm_count > 5
+    msg: "The integer is greater than 6"
+  when: ansible_role_libvirt_client_configure_vm_count > 6
 - name: Values for ansible_role_libvirt_client_configure_vm_count
   ansible.builtin.debug:
     msg: "item = {{ item }}"
