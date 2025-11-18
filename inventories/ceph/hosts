@@ -6,26 +6,38 @@ all:
       ansible_host: 192.168.56.141
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node1
     node2.jobjects.net:
       ansible_host: 192.168.56.142
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node2
     node3.jobjects.net:
       ansible_host: 192.168.56.143
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node3
     node4.jobjects.net:
       ansible_host: 192.168.56.144
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node4
     node5.jobjects.net:
       ansible_host: 192.168.56.145
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node5
     node6.jobjects.net:
       ansible_host: 192.168.56.145
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
+      aliases:
+        - node6
   vars:
     # Ansible tools
     ansible_python_interpreter: /usr/bin/python3

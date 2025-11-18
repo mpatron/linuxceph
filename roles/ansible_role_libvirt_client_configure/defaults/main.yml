@@ -1,6 +1,6 @@
 ---
 # defaults file for ansible_role_libvirt_client_configure
-ansible_role_libvirt_client_configure_adminuser: mpatron
+ansible_role_libvirt_client_configure_adminuser: myadmin
 ansible_role_libvirt_client_configure_vm_count: 1
 ansible_role_libvirt_client_configure_vm_domain: "jobjects.org"
 ansible_role_libvirt_client_configure_vm_domain_ip_pattern: "192.168.56.14"

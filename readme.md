@@ -10,22 +10,22 @@
 [vagrant.md](docs/vagrant.md)
 
 ~~~bash
-[mpatron@node0 ~]$ python3 -m venv ~/venv
-[mpatron@node0 ~]$ source ~/venv/bin/activate
-(venv) [mpatron@node0 ~]$ python3 -m pip install --upgrade pip
-(venv) [mpatron@node0 ~]$ python3 -m pip install ansible
-(venv) [mpatron@node0 ~]$ ansible --version
+[vagrant@node0 ~]$ python3 -m venv ~/venv
+[vagrant@node0 ~]$ source ~/venv/bin/activate
+(venv) [vagrant@node0 ~]$ python3 -m pip install --upgrade pip
+(venv) [vagrant@node0 ~]$ python3 -m pip install ansible
+(venv) [vagrant@node0 ~]$ ansible --version
 ansible [core 2.15.12]
   config file = None
-  configured module search path = ['/home/mpatron/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
-  ansible python module location = /home/mpatron/venv/lib64/python3.9/site-packages/ansible
-  ansible collection location = /home/mpatron/.ansible/collections:/usr/share/ansible/collections
-  executable location = /home/mpatron/venv/bin/ansible
-  python version = 3.9.18 (main, Jul  3 2024, 00:00:00) [GCC 11.4.1 20231218 (Red Hat 11.4.1-3)] (/home/mpatron/venv/bin/python3)
+  configured module search path = ['/home/vagrant/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /home/vagrant/venv/lib64/python3.9/site-packages/ansible
+  ansible collection location = /home/vagrant/.ansible/collections:/usr/share/ansible/collections
+  executable location = /home/vagrant/venv/bin/ansible
+  python version = 3.9.18 (main, Jul  3 2024, 00:00:00) [GCC 11.4.1 20231218 (Red Hat 11.4.1-3)] (/home/vagrant/venv/bin/python3)
   jinja version = 3.1.4
   libyaml = True
-(venv) [mpatron@node0 ~]$ deactivate
-[mpatron@node0 ~]$
+(venv) [vagrant@node0 ~]$ deactivate
+[vagrant@node0 ~]$
 ~~~
 
 Dépendances :
@@ -68,7 +68,7 @@ CEPH_RELEASE=19.2.3 curl --silent --remote-name --location https://download.ceph
   && chmod +x cephadm \
   && sudo mv cephadm /usr/local/bin \
   && sudo chown root:root /usr/local/bin/cephadm
-sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user mpatron --allow-fqdn-hostname
+sudo /usr/local/bin/cephadm bootstrap --mon-ip 192.168.56.141 --ssh-public-key ~/.ssh/id_ed25519.pub --ssh-private-key ~/.ssh/id_ed25519 --ssh-user vagrant --allow-fqdn-hostname
 ~~~
 
 ~~~txt
@@ -101,7 +101,7 @@ sudo /usr/local/bin/cephadm shell -- radosgw-admin user create --uid="myuser" --
 ~~~
 
 ~~~bash
-[mpatron@node1 ~]$ sudo /usr/local/bin/cephadm shell -- ceph --status
+[vagrant@node1 ~]$ sudo /usr/local/bin/cephadm shell -- ceph --status
 Inferring fsid 62501170-c3b6-11f0-86bf-525400285b89
 Inferring config /var/lib/ceph/62501170-c3b6-11f0-86bf-525400285b89/mon.node1/config
 Using ceph image with id 'aade1b12b8e6' and tag 'v19' created on 2025-07-17 19:53:27 +0000 UTC

@@ -21,14 +21,6 @@
     msg: "item = {{ item }}"
   with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
 
-## sudo sed -i '/127.0.1.1/d' /etc/hosts
-- name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    state: absent
-    regexp: '^127.0.1.1'
-    backup: true
-
 ## sudo sed -i -e "\\#PasswordAuthentication no# s#PasswordAuthentication no#PasswordAuthentication yes#g" /etc/ssh/sshd_config
 - name: Replace a localhost entry searching for a literal string to avoid escaping
   ansible.builtin.lineinfile:
@@ -39,17 +31,34 @@
   notify:
     - "Reload sshd"
 
-# for N in {0..#{VM_COUNT-1}}; do
-# [[ ! $(grep "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
-#   && echo $(echo "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
-# done
-- name: Charging /etc/hosts
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    regexp: '^"{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"'
-    line: "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"
-    backup: true
-  with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
+# Méthode avec regex pour /etc/hosts... trop vieux.
+#  ## sudo sed -i '/127.0.1.1/d' /etc/hosts
+#  - name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
+#    ansible.builtin.lineinfile:
+#      path: /etc/hosts
+#      state: absent
+#      regexp: '^127.0.1.1'
+#      backup: true
+#  
+#  # for N in {0..#{VM_COUNT-1}}; do
+#  # [[ ! $(grep "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
+#  #   && echo $(echo "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
+#  # done
+#  - name: Charging /etc/hosts
+#    ansible.builtin.lineinfile:
+#      path: /etc/hosts
+#      regexp: '^"{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"'
+#      line: "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"
+#      backup: true
+#    with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
+
+- name: Déployer le fichier /etc/hosts
+  ansible.builtin.template:
+    src: templates/hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
 
 # Upgrade all packages
 - name: Upgrade all packages
