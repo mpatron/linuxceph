@@ -13,6 +13,8 @@ sudo apt update && sudo apt install vagrant
 ~~~bash
 vagrant plugin install vagrant-libvirt
 vagrant plugin install vagrant-hostmanager
+vagrant plugin list
+vagrant plugin update
 ~~~
 
 ~~~bash
