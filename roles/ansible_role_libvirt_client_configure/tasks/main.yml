@@ -1,26 +1,4 @@
 ---
-# tasks file for ansible_role_libvirt_client_configure
-#  - name: Create converted fact from input (mixed)
-#    set_fact:
-#        l_ansible_role_libvirt_client_configure_vm_count: "{{ ansible_role_libvirt_client_configure_vm_count | int }}"
-#  - name: Show converted value (mixed)
-#    debug:
-#        msg: |
-#          "valueur {{ ansible_role_libvirt_client_configure_vm_count | int }}"
-#          "donc {{ vars[ansible_role_libvirt_client_configure_vm_count] }}"
-#          "Alors {{ vars[ansible_role_libvirt_client_configure_vm_count] is number }}"
-- name: Value ===> of ansible_role_libvirt_client_configure_vm_count
-  ansible.builtin.debug:
-    msg: "ansible_role_libvirt_client_configure_vm_count = {{ ansible_role_libvirt_client_configure_vm_count | int }}, il devrait être au moins de 3 voir 6 !"
-- name: Check if converted integer is greater than 3
-  ansible.builtin.debug:
-    msg: "The integer is greater than 3"
-  when: ansible_role_libvirt_client_configure_vm_count | int > 3
-- name: Values for ansible_role_libvirt_client_configure_vm_count
-  ansible.builtin.debug:
-    msg: "item = {{ item }}"
-  with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
-
 ## sudo sed -i -e "\\#PasswordAuthentication no# s#PasswordAuthentication no#PasswordAuthentication yes#g" /etc/ssh/sshd_config
 - name: Replace a localhost entry searching for a literal string to avoid escaping
   ansible.builtin.lineinfile:
@@ -30,27 +8,6 @@
     backup: true
   notify:
     - "Reload sshd"
-
-# Méthode avec regex pour /etc/hosts... trop vieux.
-#  ## sudo sed -i '/127.0.1.1/d' /etc/hosts
-#  - name: "Vagrant position dans /etc/hosts le hostname sur l'ip 127.0.1.1. Il faut le supprimer."
-#    ansible.builtin.lineinfile:
-#      path: /etc/hosts
-#      state: absent
-#      regexp: '^127.0.1.1'
-#      backup: true
-#  
-#  # for N in {0..#{VM_COUNT-1}}; do
-#  # [[ ! $(grep "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" /etc/hosts) ]]
-#  #   && echo $(echo "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
-#  # done
-#  - name: Charging /etc/hosts
-#    ansible.builtin.lineinfile:
-#      path: /etc/hosts
-#      regexp: '^"{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"'
-#      line: "{{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }} node{{ item }}.{{ ansible_role_libvirt_client_configure_vm_domain }} node{{ item }}"
-#      backup: true
-#    with_sequence: start=1 end={{ ansible_role_libvirt_client_configure_vm_count }}
 
 - name: Déployer le fichier /etc/hosts
   ansible.builtin.template:
@@ -196,9 +153,6 @@
     line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOLy67TsKpWE/PWY7sGt12L/Oh+wSmfpux/QmHdL198w {{ ansible_role_libvirt_client_configure_adminuser }}@node0"
     backup: true
 
-#     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
-#     echo "    Hostname {{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}${N}" | sudo tee -a /home/vagrant/.ssh/config
-#     echo "    StrictHostKeyChecking no" | sudo tee -a /home/vagrant/.ssh/config
 - name: Install configure file in ~/.ssh/config
   ansible.builtin.template:
     src: "config.j2"

@@ -1,18 +1,12 @@
 ---
+# Playbook to configure VM libvirt
+
 - name: Playbook to configure VM libvirt
   hosts: all
   become: true
 
-  vars:
-    # The playblook need to have a the number of VM with --extra-var "vm_count=xxx"
-    # It is send by the Vagrantfile
-
   roles:
     - role: ansible_role_libvirt_client_configure
-      vars:
-        ansible_role_libvirt_client_configure_vm_count: "{{ vm_count | default(1) | int }}"
-        ansible_role_libvirt_client_configure_vm_domain: "{{ vm_domain | default('jobjects.net') | string }}"
-        ansible_role_libvirt_client_configure_vm_domain_ip_pattern: "{{ vm_domain_ip_pattern | default('192.168.56.14') | string }}"
     - role: geerlingguy.swap
       vars:
         swap_file_state: 'absent'
@@ -20,7 +14,7 @@
   tasks:
     - name: Printing Fact Variables for the cluster nodes
       ansible.builtin.debug:
-        msg: "The value {{ vm_count | default(1) | int }} of OS Family is {{ item.prop }} [ {{ item.value }} ]"
+        msg: "The value of OS Family is {{ item.prop }} [ {{ item.value }} ]"
       with_items:
         - { prop: 'ansible_os_family', value: "{{ ansible_os_family }}" }
         - { prop: 'ansible_distribution', value: "{{ ansible_distribution }}" }

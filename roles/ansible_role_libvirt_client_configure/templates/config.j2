@@ -1,5 +1,7 @@
-{% for item in range(1, (ansible_role_libvirt_client_configure_vm_count | int) -1 ) %}
-Host node{{ item }}
-    Hostname {{ ansible_role_libvirt_client_configure_vm_domain_ip_pattern }}{{ item }}
+{% for host in groups['all'] %}
+{% for alias in hostvars[host].aliases | default([]) %}
+Host {{ alias }}
+    Hostname {{ hostvars[host].inventory_hostname }}
     StrictHostKeyChecking no
+{% endfor %}
 {% endfor %}
