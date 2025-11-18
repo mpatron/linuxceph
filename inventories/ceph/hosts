@@ -33,7 +33,7 @@ all:
       aliases:
         - node5
     node6.jobjects.net:
-      ansible_host: 192.168.56.145
+      ansible_host: 192.168.56.146
       ansible_ssh_user: vagrant
       ansible_ssh_pass: vagrant
       aliases:
