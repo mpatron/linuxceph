@@ -25,3 +25,5 @@ derby.log
 .ansible
 
 *.exclude
+
+myk0scluster.yaml

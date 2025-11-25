@@ -122,3 +122,23 @@ quay.io/ceph/ceph@sha256:af0c5903e901e329adabe219dfc8d0c3efc1f05102a753902f33ee1
     usage:   879 MiB used, 66 GiB / 67 GiB avail
     pgs:     289 active+clean
 ~~~
+
+## k0s pour rook-ceph
+
+~~~bash
+# # for N in {0..6}; do ssh-keygen -f '/home/$USER/.ssh/known_hosts' -R 192.168.56.14${N}; done
+# On install k0sctl si on ne l'a pas
+sudo curl -fLo /usr/local/bin/k0sctl --create-dirs https://github.com/k0sproject/k0sctl/releases/download/v0.27.0/k0sctl-linux-amd64 && sudo chmod 755 /usr/local/bin/k0sctl
+# On fabrique le fichier de configuration
+k0sctl init --cluster-name k0s-cluster --controller-count 3 --user myadmin --key-path $(pwd)/roles/ansible_role_libvirt_client_configure/files/id_ed25519 myadmin@192.168.56.141 myadmin@192.168.56.142 myadmin@192.168.56.143 myadmin@192.168.56.144 myadmin@192.168.56.145 myadmin@192.168.56.146 > myk0scluster.yaml
+# On charge la clef pour faire apply
+ssh-add $(pwd)/roles/ansible_role_libvirt_client_configure/files/id_ed25519
+# On lance l'installation avec le fichier de configuration qui a été crée
+k0sctl apply --config myk0scluster.yaml --debug
+# On supprime tout, un 'vagrant destroy -f' fait aussi l'affaire.
+k0sctl reset --config myk0scluster.yaml --debug
+~~~
+
+Puis on suit
+
+[https://rook.io/docs/rook/v1.9/quickstart.html](https://rook.io/docs/rook/v1.9/quickstart.html)
