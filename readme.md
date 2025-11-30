@@ -219,3 +219,22 @@ helm install --create-namespace --namespace rook-ceph rook-ceph rook-release/roo
 helm repo add rook-release https://charts.rook.io/release
 helm install --create-namespace --namespace rook-ceph rook-ceph-cluster --set operatorNamespace=rook-ceph rook-release/rook-ceph-cluster
 ~~~
+
+~~~bash
+kubectl create -f rook/deploy/examples/toolbox.yaml
+kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- bash
+~~~
+
+~~~bash
+bash-5.1$ ceph health
+HEALTH_ERR 1 filesystem is offline; 1 filesystem is online with fewer MDS than max_mds; Reduced data availability: 60 pgs inactive
+bash-5.1$ ceph osd tree   
+ID  CLASS  WEIGHT  TYPE NAME     STATUS  REWEIGHT  PRI-AFF
+-1              0  root default                           
+ 0              0  osd.0           down         0  1.00000
+ 1              0  osd.1           down         0  1.00000
+ 2              0  osd.2           down   1.00000  1.00000
+ 3              0  osd.3           down   1.00000  1.00000
+ 4              0  osd.4           down   1.00000  1.00000
+ 5              0  osd.5           down   1.00000  1.00000
+~~~
