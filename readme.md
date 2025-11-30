@@ -181,8 +181,6 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 helm show values prometheus-community/kube-prometheus-stack
 helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.9.0
-kubectl --namespace default get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
-
 # Get Grafana 'admin' user password by running:
 kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 # Access Grafana local instance:
@@ -212,16 +210,17 @@ kubectl delete crd thanosrulers.monitoring.coreos.com
 source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 helm repo add rook-release https://charts.rook.io/release && helm repo update
 curl -OL https://raw.githubusercontent.com/rook/rook/refs/heads/release-1.18/deploy/charts/rook-ceph/values.yaml
-helm install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph -f values.yaml --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+helm install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph -f ~/tmp/values.yaml --set csi.kubeletDirPath=/var/lib/k0s/kubelet
 ~~~
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
 helm install --create-namespace --namespace rook-ceph rook-ceph-cluster --set operatorNamespace=rook-ceph rook-release/rook-ceph-cluster
+kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 ~~~
 
 ~~~bash
-kubectl create -f rook/deploy/examples/toolbox.yaml
+kubectl create -f ~/tmp/rook/deploy/examples/toolbox.yaml
 kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- bash
 ~~~
 
