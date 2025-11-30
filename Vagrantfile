@@ -1,8 +1,8 @@
 # -*- mode: ruby -*-
 
-VM_COUNT = 6
+VM_COUNT = 4
 VM_RAM = "4096" # 1024 2048 3072 4096 6144 8192
-VM_CPU = 2
+VM_CPU = 4
 IMAGE = "almalinux/9"
 DOMAIN = "jobjects.net"
 DOMAIN_IP_PATTERN = "192.168.56.14"

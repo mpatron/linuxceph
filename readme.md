@@ -126,7 +126,7 @@ quay.io/ceph/ceph@sha256:af0c5903e901e329adabe219dfc8d0c3efc1f05102a753902f33ee1
 ## k0s pour rook-ceph
 
 ~~~bash
-# for N in {0..6}; do ssh-keygen -f '/home/$USER/.ssh/known_hosts' -R 192.168.56.14${N}; done
+# for N in {0..6}; do ssh-keygen -f /home/$USER/.ssh/known_hosts -R 192.168.56.14${N}; done
 # On install k0sctl si on ne l'a pas
 sudo curl -fLo /usr/local/bin/k0sctl --create-dirs https://github.com/k0sproject/k0sctl/releases/download/v0.27.0/k0sctl-linux-amd64 && sudo chmod 755 /usr/local/bin/k0sctl
 # On fabrique le fichier de configuration
@@ -136,8 +136,7 @@ ssh-add $(pwd)/roles/ansible_role_libvirt_client_configure/files/id_ed25519
 # On lance l'installation avec le fichier de configuration qui a été crée
 k0sctl apply --config myk0scluster.yaml --debug
 # On recupère le kubeconfig pour kubectl
-k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig
-kubectl get all -A
+k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig && kubectl get all -A
 # On supprime tout, un 'vagrant destroy -f' fait aussi l'affaire.
 k0sctl reset --config myk0scluster.yaml --debug
 ~~~
@@ -145,6 +144,8 @@ k0sctl reset --config myk0scluster.yaml --debug
 Puis on suit
 
 [https://rook.io/docs/rook/v1.9/quickstart.html](https://rook.io/docs/rook/v1.9/quickstart.html)
+[https://docs.k0sproject.io/v1.30.5+k0s.0/examples/rook-ceph/](https://docs.k0sproject.io/v1.30.5+k0s.0/examples/rook-ceph/)
+[https://rook.io/docs/rook/latest-release/Helm-Charts/operator-chart/#configuration](https://rook.io/docs/rook/latest-release/Helm-Charts/operator-chart/#configuration)
 
 C'est à dire faire ce qui suit. C'est une opération très longue.
 
@@ -153,6 +154,68 @@ git clone --single-branch --branch v1.18.7 https://github.com/rook/rook.git
 cd rook/deploy/examples
 export KUBECONFIG=~/.kube/k0s-kubeconfig
 kubectl create -f crds.yaml -f common.yaml -f operator.yaml
+
+# operator.yaml ligne 507 mettre à true comme :
+# 156 ROOK_CSI_KUBELET_DIR_PATH: "/var/lib/k0s/kubelet"
+# 507 ROOK_ENABLE_DISCOVERY_DAEMON: "true"
+kubectl create -f operator.yaml
+
+# cluster.yaml, ligne 116 mettre 'provider: host' actif, donc enlever le #
+# provider: host
 kubectl create -f cluster.yaml
+
 kubectl -n rook-ceph events -w
+
+kubectl delete -f cluster.yaml -f crds.yaml -f common.yaml -f operator.yaml
+kubectl delete namespace rook-ceph --all
+
+for i in {1..6}; do
+  vagrant ssh node$i -c "sudo shutdown -r now"
+done
+~~~
+
+Installation de prometheus
+
+~~~bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm show values prometheus-community/kube-prometheus-stack
+helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.9.0
+kubectl --namespace default get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+
+# Get Grafana 'admin' user password by running:
+kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+# Access Grafana local instance:
+export POD_NAME=$(kubectl --namespace prometheus get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=prometheus" -oname)
+kubectl --namespace prometheus port-forward $POD_NAME 3000
+# Get your grafana admin user password by running:
+kubectl get secret --namespace prometheus -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
+~~~
+
+Déinstallation de prometheus
+
+~~~bash
+helm uninstall prometheus
+kubectl delete crd alertmanagerconfigs.monitoring.coreos.com
+kubectl delete crd alertmanagers.monitoring.coreos.com
+kubectl delete crd podmonitors.monitoring.coreos.com
+kubectl delete crd probes.monitoring.coreos.com
+kubectl delete crd prometheusagents.monitoring.coreos.com
+kubectl delete crd prometheuses.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd scrapeconfigs.monitoring.coreos.com
+kubectl delete crd servicemonitors.monitoring.coreos.com
+kubectl delete crd thanosrulers.monitoring.coreos.com
+~~~
+
+~~~bash
+source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
+helm repo add rook-release https://charts.rook.io/release && helm repo update
+curl -OL https://raw.githubusercontent.com/rook/rook/refs/heads/release-1.18/deploy/charts/rook-ceph/values.yaml
+helm install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph -f values.yaml --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+~~~
+
+~~~bash
+helm repo add rook-release https://charts.rook.io/release
+helm install --create-namespace --namespace rook-ceph rook-ceph-cluster --set operatorNamespace=rook-ceph rook-release/rook-ceph-cluster
 ~~~
