@@ -61,7 +61,7 @@ Générer le fichier de configuration avec toutes les valeurs par default :
 ansible-config init --disabled -t all > ansible-all-defaults.cfg
 ~~~
 
-## Installation de Ceph avec cephadm
+## Installation de Ceph avec cephadm (fonctionne)
 
 ~~~bash
 CEPH_RELEASE=19.2.3 curl --silent --remote-name --location https://download.ceph.com/rpm-${CEPH_RELEASE}/el9/noarch/cephadm \
@@ -146,6 +146,10 @@ for i in {1..4}; do
 done
 ~~~
 
+## Rook-Ceph
+
+## Rook-Ceph avec 'git clone' (ne fonctionne pas !)
+
 Puis on suit
 
 [https://rook.io/docs/rook/v1.9/quickstart.html](https://rook.io/docs/rook/v1.9/quickstart.html)
@@ -179,6 +183,8 @@ for i in {1..6}; do
   vagrant ssh node$i -c "sudo shutdown -r now"
 done
 ~~~
+
+## Rook-Ceph avec helm (ne fonctionne pas !)
 
 Installation de prometheus
 
@@ -217,14 +223,28 @@ source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 helm repo add rook-release https://charts.rook.io/release && helm repo update
 helm search repo rook-release/rook-ceph --versions | head -n 5
 helm show values rook-release/rook-ceph --version v1.18.7 > ~/tmp/values.yaml
-helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph --version v1.18.7 --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.7 \
+  --set csi.kubeletDirPath=/var/lib/k0s/kubelet
 ~~~
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
 helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
 helm show values rook-release/rook-ceph-cluster --version v1.18.7
-helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --version v1.18.7 --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet --set cephClusterSpec.resources.osd.requests.memory=1Gi --set cephClusterSpec.resources.osd.limits.memory=3Gi rook-release/rook-ceph-cluster
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.7 \
+  --set toolbox.enabled=true \
+  --set monitoring.enabled=true \
+  --set cephClusterSpec.dataDirHostPath=/var/lib/rook \
+  --set cephClusterSpec.mgr.count=1 \
+  --set cephClusterSpec.resources.osd.requests.memory=1Gi \
+  --set cephClusterSpec.resources.osd.limits.memory=3Gi \
+  --set cephClusterSpec.storage.useAllNodes=true \
+  --set cephClusterSpec.storage.useAllDevices=false \
+  --set cephClusterSpec.storage.devices=["vdb","vdc"] \
+  --set cephClusterSpec.storage.config.osdsPerDevice=1 \
+  --set cephClusterSpec.storage.config.databaseSizeMB=1024
+
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.7 -f rook-cluster-values.yaml
 
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 
