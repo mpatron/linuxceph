@@ -170,6 +170,7 @@ kubectl delete -f cluster.yaml -f crds.yaml -f common.yaml -f operator.yaml
 kubectl delete namespace rook-ceph --all
 
 for i in {1..6}; do
+  echo "Restart node$i..."
   vagrant ssh node$i -c "sudo shutdown -r now"
 done
 ~~~
@@ -209,14 +210,19 @@ kubectl delete crd thanosrulers.monitoring.coreos.com
 ~~~bash
 source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 helm repo add rook-release https://charts.rook.io/release && helm repo update
-curl -OL https://raw.githubusercontent.com/rook/rook/refs/heads/release-1.18/deploy/charts/rook-ceph/values.yaml
-helm install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph -f ~/tmp/values.yaml --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+helm search repo rook-release/rook-ceph --versions | head -n 5
+helm show values rook-release/rook-ceph --version v1.18.7 > ~/tmp/values.yaml
+helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph rook-release/rook-ceph --version v1.18.7 --set csi.kubeletDirPath=/var/lib/k0s/kubelet
 ~~~
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
-helm install --create-namespace --namespace rook-ceph rook-ceph-cluster --set operatorNamespace=rook-ceph rook-release/rook-ceph-cluster
+helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet rook-release/rook-ceph-cluster
+helm show values rook-release/rook-ceph-cluster --version v1.18.7
+helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
+
+helm uninstall --namespace rook-ceph rook-ceph-cluster
 ~~~
 
 ~~~bash
@@ -236,4 +242,10 @@ ID  CLASS  WEIGHT  TYPE NAME     STATUS  REWEIGHT  PRI-AFF
  3              0  osd.3           down   1.00000  1.00000
  4              0  osd.4           down   1.00000  1.00000
  5              0  osd.5           down   1.00000  1.00000
+~~~
+
+~~~bash
+source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
+kubectl api-resources --verbs=list --namespaced=true -o name | xargs -n 1 kubectl get --ignore-not-found --show-kind -n rook-ceph
+kubectl patch crd sparkapplications.spark.apache.org -p '{"metadata":{"finalizers":[]}}' --type=merge
 ~~~
