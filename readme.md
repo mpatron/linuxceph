@@ -222,9 +222,9 @@ helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph rook-r
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
-helm show values rook-release/rook-ceph-cluster --version v1.18.7
 helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
-helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet --set cephClusterSpec.resources.osd.requests.memory=1Gi --set cephClusterSpec.resources.osd.limits.memory=3Gi rook-release/rook-ceph-cluster
+helm show values rook-release/rook-ceph-cluster --version v1.18.7
+helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --version v1.18.7 --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet --set cephClusterSpec.resources.osd.requests.memory=1Gi --set cephClusterSpec.resources.osd.limits.memory=3Gi rook-release/rook-ceph-cluster
 
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 
@@ -268,4 +268,51 @@ for i in {1..4}; do
   vagrant ssh node$i -c "sudo rm -rf /var/lib/k0s/kubelet/rook-ceph"
   vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
 done
+~~~
+
+
+
+
+~~~bash
+helm repo add openebs https://openebs.github.io/openebs
+helm repo update
+helm search repo openebs/openebs --versions | head -n 5
+helm show values openebs/openebs --version 4.4.0
+helm install openebs --namespace openebs --create-namespace --version 4.4.0 openebs/openebs --set lvm-localpv.lvmNode.kubeletDir=/var/lib/k0s/kubelet --set engines.replicated.mayastor.enabled=false
+kubectl get storageclass
+kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+cat <<EOF | kubectl apply -f -
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: local-hostpath-pvc
+spec:
+  storageClassName: openebs-hostpath
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5G
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-local-hostpath-pod
+spec:
+  volumes:
+  - name: local-storage
+    persistentVolumeClaim:
+      claimName: local-hostpath-pvc
+  containers:
+  - name: hello-container
+    image: ubuntu:latest
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sleep", "7d"]
+    volumeMounts:
+    - mountPath: /mnt/store
+      name: local-storage
+EOF
+kubectl exec -it hello-local-hostpath-pod -- /bin/bash
 ~~~
