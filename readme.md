@@ -139,6 +139,11 @@ k0sctl apply --config myk0scluster.yaml --debug
 k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig && kubectl get all -A
 # On supprime tout, un 'vagrant destroy -f' fait aussi l'affaire.
 k0sctl reset --config myk0scluster.yaml --debug
+
+for i in {1..4}; do
+  echo "Restart node$i..."
+  vagrant ssh node$i -c "ls -la /var/lib/k0s/kubelet"
+done
 ~~~
 
 Puis on suit
@@ -217,23 +222,24 @@ helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph rook-r
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
-helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet rook-release/rook-ceph-cluster
 helm show values rook-release/rook-ceph-cluster --version v1.18.7
 helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
+helm upgrade --install --create-namespace --namespace rook-ceph rook-ceph-cluster --set toolbox.enabled=true --set monitoring.enabled=true --set cephClusterSpec.dataDirHostPath=/var/lib/k0s/kubelet --set cephClusterSpec.resources.osd.requests.memory=1Gi --set cephClusterSpec.resources.osd.limits.memory=3Gi rook-release/rook-ceph-cluster
+
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 
 helm uninstall --namespace rook-ceph rook-ceph-cluster
+kubectl delete namespace rook-ceph
 ~~~
 
 ~~~bash
-kubectl create -f ~/tmp/rook/deploy/examples/toolbox.yaml
 kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- bash
 ~~~
 
 ~~~bash
 bash-5.1$ ceph health
 HEALTH_ERR 1 filesystem is offline; 1 filesystem is online with fewer MDS than max_mds; Reduced data availability: 60 pgs inactive
-bash-5.1$ ceph osd tree   
+bash-5.1$ ceph osd tree
 ID  CLASS  WEIGHT  TYPE NAME     STATUS  REWEIGHT  PRI-AFF
 -1              0  root default                           
  0              0  osd.0           down         0  1.00000
@@ -247,5 +253,19 @@ ID  CLASS  WEIGHT  TYPE NAME     STATUS  REWEIGHT  PRI-AFF
 ~~~bash
 source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 kubectl api-resources --verbs=list --namespaced=true -o name | xargs -n 1 kubectl get --ignore-not-found --show-kind -n rook-ceph
-kubectl patch crd sparkapplications.spark.apache.org -p '{"metadata":{"finalizers":[]}}' --type=merge
+
+# https://rook.io/docs/rook/latest-release/Storage-Configuration/ceph-teardown/#removing-the-cluster-crd-finalizer
+kubectl patch -n rook-ceph clientprofile.csi.ceph.io rook-ceph -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph cephobjectstore.ceph.rook.io/ceph-objectstore -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph cephfilesystemsubvolumegroup.ceph.rook.io/ceph-filesystem-csi -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph cephfilesystem.ceph.rook.io/ceph-filesystem -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph cephcluster.ceph.rook.io/rook-ceph -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph cephblockpool.ceph.rook.io/ceph-blockpool -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph secret/rook-ceph-mon -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl patch -n rook-ceph configmap/rook-ceph-mon-endpoints -p '{"metadata":{"finalizers":[]}}' --type=merge
+
+for i in {1..4}; do
+  vagrant ssh node$i -c "sudo rm -rf /var/lib/k0s/kubelet/rook-ceph"
+  vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
+done
 ~~~

@@ -27,7 +27,7 @@
         name:
           - vim
           # Ceph dependencies
-          - podman
+          # - podman
           - chrony
           - lvm2
           - git
