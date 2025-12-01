@@ -1,10 +1,19 @@
 ---
 operatorNamespace: rook-ceph
 createDefaultCephCluster: true
-
+toolbox:
+  enabled: true
+  spec:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
 cephClusterSpec:
   cephVersion:
-    image: quay.io/ceph/ceph:v18.2.2
+    image: quay.io/ceph/ceph:v19.2.3
     allowUnsupported: false
   dataDirHostPath: /var/lib/rook
   mon:
