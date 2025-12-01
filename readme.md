@@ -277,7 +277,18 @@ helm repo add openebs https://openebs.github.io/openebs
 helm repo update
 helm search repo openebs/openebs --versions | head -n 5
 helm show values openebs/openebs --version 4.4.0
-helm install openebs --namespace openebs --create-namespace --version 4.4.0 openebs/openebs --set lvm-localpv.lvmNode.kubeletDir=/var/lib/k0s/kubelet --set engines.replicated.mayastor.enabled=false
+
+helm upgrade --install openebs --namespace openebs --create-namespace --version 4.4.0 openebs/openebs \
+  --set lvm-localpv.lvmNode.kubeletDir=/var/lib/k0s/kubelet \
+  --set zfs-localpv.zfsNode.kubeletDir=/var/lib/k0s/kubelet \
+  --set mayastor.csi.node.kubeletDir=/var/lib/k0s/kubelet \
+  --set engines.replicated.mayastor.enabled=false
+
+helm upgrade --install openebs --namespace openebs --create-namespace --version 4.4.0 openebs/openebs \
+  --set lvm-localpv.lvmNode.kubeletDir=/var/lib/k0s/kubelet \
+  --set zfs-localpv.zfsNode.kubeletDir=/var/lib/k0s/kubelet \
+  --set mayastor.csi.node.kubeletDir=/var/lib/k0s/kubelet
+
 kubectl get storageclass
 kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
@@ -314,4 +325,7 @@ spec:
       name: local-storage
 EOF
 kubectl exec -it hello-local-hostpath-pod -- /bin/bash
+
+
+helm uninstall -n openebs openebs
 ~~~
