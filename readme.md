@@ -159,7 +159,7 @@ Puis on suit
 C'est à dire faire ce qui suit. C'est une opération très longue.
 
 ~~~bash
-git clone --single-branch --branch v1.18.7 https://github.com/rook/rook.git
+git clone --single-branch --branch v1.18.8 https://github.com/rook/rook.git
 cd rook/deploy/examples
 export KUBECONFIG=~/.kube/k0s-kubeconfig
 kubectl create -f crds.yaml -f common.yaml -f operator.yaml
@@ -222,16 +222,16 @@ kubectl delete crd thanosrulers.monitoring.coreos.com
 source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 helm repo add rook-release https://charts.rook.io/release && helm repo update
 helm search repo rook-release/rook-ceph --versions | head -n 5
-helm show values rook-release/rook-ceph --version v1.18.7 > ~/tmp/values.yaml
-helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.7 \
+helm show values rook-release/rook-ceph --version v1.18.8 > ~/tmp/values.yaml
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \
   --set csi.kubeletDirPath=/var/lib/k0s/kubelet
 ~~~
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
 helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
-helm show values rook-release/rook-ceph-cluster --version v1.18.7
-helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.7 \
+helm show values rook-release/rook-ceph-cluster --version v1.18.8 > ~/tmp/values.yaml
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 \
   --set toolbox.enabled=true \
   --set monitoring.enabled=true \
   --set cephClusterSpec.dataDirHostPath=/var/lib/rook \
@@ -244,7 +244,7 @@ helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluste
   --set cephClusterSpec.storage.config.osdsPerDevice=1 \
   --set cephClusterSpec.storage.config.databaseSizeMB=1024
 
-helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.7 -f rook-cluster-values.yaml
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 -f rook-cluster-values.yaml
 
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 
@@ -257,8 +257,18 @@ kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-t
 ~~~
 
 ~~~bash
+bash-5.1$ ceph status
+...
 bash-5.1$ ceph health
 HEALTH_ERR 1 filesystem is offline; 1 filesystem is online with fewer MDS than max_mds; Reduced data availability: 60 pgs inactive
+bash-5.1$ ceph osd status
+ID  HOST   USED  AVAIL  WR OPS  WR DATA  RD OPS  RD DATA  STATE      
+ 0           0      0       0        0       0        0   exists,up  
+ 1           0      0       0        0       0        0   exists,up  
+ 2           0      0       0        0       0        0   exists,up  
+ 3           0      0       0        0       0        0   exists,up  
+ 4           0      0       0        0       0        0   exists,up  
+ 5           0      0       0        0       0        0   exists,up
 bash-5.1$ ceph osd tree
 ID  CLASS  WEIGHT  TYPE NAME     STATUS  REWEIGHT  PRI-AFF
 -1              0  root default                           
@@ -348,4 +358,103 @@ kubectl exec -it hello-local-hostpath-pod -- /bin/bash
 
 
 helm uninstall -n openebs openebs
+~~~
+
+## Short list
+
+~~~bash
+# On a besoin de ansible
+source ~/venv/bin/activate
+vagrant up --provision --provider=libvirt
+# L'installation avec k0sctl ne fonctionne pas si ~/.ssh/known_hosts ne référence pas bien les vm et il lui faut la clef ed25519
+for N in {0..6}; do ssh-keygen -f /home/$USER/.ssh/known_hosts -R 192.168.56.14${N}; done
+ssh-add $(pwd)/roles/ansible_role_libvirt_client_configure/files/id_ed25519
+k0sctl apply --config myk0scluster.yaml
+# On récupère tout de suite le kubeconfig
+k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig && kubectl get all -A && kubectl top nodes
+helm repo update
+helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.9.0
+# Get Grafana 'admin' user password by running:
+kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \
+  --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 --values rook-cluster-values.yaml
+~~~
+
+Netoyage de rook-ceph
+
+~~~bash
+source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
+helm ls --namespace rook-ceph
+helm delete --namespace rook-ceph rook-ceph
+for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
+    kubectl get -n rook-ceph "$CRD" -o name | \
+    xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
+done
+
+kubectl delete namespaces rook-ceph
+kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
+kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
+kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}'
+kubectl -n rook-ceph patch clientprofile.csi.ceph.io rook-ceph --type merge -p '{"metadata":{"finalizers": []}}'
+
+kubectl api-resources --verbs=list --namespaced -o name \
+  | xargs -n 1 kubectl get -n rook-ceph --ignore-not-found -o json \
+  | jq -r '.items[] | [.kind, .metadata.name] | @tsv' \
+  | while read kind name; do
+      kubectl -n rook-ceph patch "$kind" "$name" \
+        --type merge -p '{"metadata":{"finalizers":[]}}'
+    done
+
+for i in {1..4}; do
+  vagrant ssh node$i -c "sudo rm -rf /var/lib/k0s/kubelet/rook-ceph"
+  vagrant ssh node$i -c "sudo rm -rf /var/lib/rook"
+  vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
+done
+for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done
+~~~
+for i in {1..4}; do
+  vagrant ssh node$i -c "sudo ls -la /var/lib/k0s/kubelet"
+  vagrant ssh node$i -c "sudo ls -la /var/lib"
+done
+
+~~~bash
+cat <<EOF | kubectl apply -f -
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "ubuntu-pvc"
+spec:
+  storageClassName: "ceph-block"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 400M
+EOF
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu
+spec:
+  volumes:
+  - name: local-storage
+    persistentVolumeClaim:
+      claimName: "ubuntu-pvc"
+  containers:
+  - name: hello-container
+    image: ubuntu:24.04
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sleep", "7d"]
+    volumeMounts:
+    - mountPath: /mnt/store
+      name: local-storage
+EOF
+
+kubectl exec -it ubuntu -- /bin/bash
+echo "mon test" $(LC_ALL=C tr -dc '[:alnum:]' </dev/urandom | head -c 20) > /mnt/store/monfichier.txt
+
 ~~~

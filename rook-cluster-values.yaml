@@ -28,8 +28,8 @@ cephClusterSpec:
     useAllNodes: true
     useAllDevices: false
     devices:
-      - name: "sdb"
-      - name: "sdc"
+      - name: "vdb"
+      - name: "vdc"
     config:
       osdsPerDevice: "1"
   resources:
