@@ -10,9 +10,10 @@ spec:
       user: myadmin
       port: 22
       keyPath: /home/ubuntu/linuxceph/roles/ansible_role_libvirt_client_configure/files/id_ed25519
-    installFlags:
-      - "--enable-worker"
-    role: controller+worker
+    role: controller
+#     installFlags:
+#       - "--enable-worker"
+#     role: controller+worker
 #  - ssh:
 #      address: 192.168.56.142
 #      user: myadmin
