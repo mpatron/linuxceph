@@ -412,11 +412,11 @@ for i in {1..4}; do
   vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
 done
 for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done
-~~~
 for i in {1..4}; do
   vagrant ssh node$i -c "sudo ls -la /var/lib/k0s/kubelet"
   vagrant ssh node$i -c "sudo ls -la /var/lib"
 done
+~~~
 
 ~~~bash
 cat <<EOF | kubectl apply -f -
