@@ -14,29 +14,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider :libvirt do |libvirt|
     libvirt.qemu_use_session = false
-    libvirt.cpus = 2
-    libvirt.nested = true
-    libvirt.memory = 2048
-  end
-  config.vm.define "node1" do |node|
-    node.vm.hostname = "node1.#{DOMAIN}"
-    node.vm.network "private_network", ip: "#{DOMAIN_IP_PATTERN}1"
-    node.vm.provision "ansible" do |ansible|
-      ansible.verbose = false # default=true ou "-vvv" pour debug
-      # ansible.limit = "all"
-      ansible.playbook = "provision-playbook.yml"
-      ansible.extra_vars = {
-        "vm_count": VM_COUNT,
-        "vm_domain": DOMAIN,
-        "vm_domain_ip_pattern": DOMAIN_IP_PATTERN
-      }
-    end
-    # if i == VM_COUNT
-    # end
-  end
-
-  config.vm.provider :libvirt do |libvirt|
-    libvirt.qemu_use_session = false
     libvirt.cpus = VM_CPU
     libvirt.nested = true
     libvirt.memory = VM_RAM
@@ -47,7 +24,7 @@ Vagrant.configure("2") do |config|
     # libvirt.storage :file, :type => 'qcow2', name: "extradisk4", size: "1GB"
   end
 
-  (2..VM_COUNT).each do |i|
+  (1..VM_COUNT).each do |i|
     config.vm.define "node#{i}" do |node|
       node.vm.hostname = "node#{i}.#{DOMAIN}"
       node.vm.network "private_network", ip: "#{DOMAIN_IP_PATTERN}#{i}"
