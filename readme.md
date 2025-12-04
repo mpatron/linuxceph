@@ -456,5 +456,4 @@ EOF
 
 kubectl exec -it ubuntu -- /bin/bash
 echo "mon test" $(LC_ALL=C tr -dc '[:alnum:]' </dev/urandom | head -c 20) > /mnt/store/monfichier.txt
-
 ~~~
