@@ -1,0 +1,56 @@
+---
+operatorNamespace: rook-ceph
+createDefaultCephCluster: true
+toolbox:
+  enabled: true
+  spec:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+cephClusterSpec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2.3
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 1
+  dashboard:
+    enabled: true
+    ssl: false
+  storage:
+    useAllNodes: true
+    useAllDevices: false
+    devices:
+      - name: "vdb"
+      - name: "vdc"
+    config:
+      osdsPerDevice: "1"
+  resources:
+    mon:
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    mgr:
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    osd:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"

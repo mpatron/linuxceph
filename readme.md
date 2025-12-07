@@ -191,8 +191,9 @@ Installation de prometheus
 ~~~bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
+helm search repo prometheus-community/kube-prometheus-stack --versions | head -n 5
 helm show values prometheus-community/kube-prometheus-stack
-helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.9.0
+helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.12.0
 # Get Grafana 'admin' user password by running:
 kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 # Access Grafana local instance:
@@ -373,12 +374,13 @@ k0sctl apply --config myk0scluster.yaml
 # On récupère tout de suite le kubeconfig
 k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig && kubectl get all -A && kubectl top nodes
 helm repo update
-helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.9.0
+helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.12.0
 # Get Grafana 'admin' user password by running:
 kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \
   --set csi.kubeletDirPath=/var/lib/k0s/kubelet
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 --values rook-cluster-values.yaml
+kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
 ~~~
 
 Netoyage de rook-ceph
@@ -392,6 +394,7 @@ for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
     xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
 done
 
+helm uninstall --namespace rook-ceph rook-ceph-cluster
 kubectl delete namespaces rook-ceph
 kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
 kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
