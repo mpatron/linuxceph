@@ -225,13 +225,14 @@ helm repo add rook-release https://charts.rook.io/release && helm repo update
 helm search repo rook-release/rook-ceph --versions | head -n 5
 helm show values rook-release/rook-ceph --version v1.18.8 > ~/tmp/values.yaml
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \
-  --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+  --set csi.kubeletDirPath=/var/lib/k0s/kubelet \
+  --set cephCommandsTimeoutSeconds="60"
 ~~~
 
 ~~~bash
 helm repo add rook-release https://charts.rook.io/release
 helm search repo rook-release/rook-ceph-cluster --versions | head -n 5
-helm show values rook-release/rook-ceph-cluster --version v1.18.8 > ~/tmp/values.yaml
+helm show values rook-release/rook-ceph-cluster --version v1.18.8 > ~/tmp/values.yaml # à Comparer avec rook-cluster-values.yaml
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 \
   --set toolbox.enabled=true \
   --set monitoring.enabled=true \
@@ -364,6 +365,9 @@ helm uninstall -n openebs openebs
 ## Short list
 
 ~~~bash
+# =============================================================================
+# =============================================================================
+# =============================================================================
 # On a besoin de ansible
 source ~/venv/bin/activate
 vagrant up --provision --provider=libvirt
@@ -378,9 +382,14 @@ helm upgrade --install prometheus --namespace prometheus --create-namespace prom
 # Get Grafana 'admin' user password by running:
 kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \
-  --set csi.kubeletDirPath=/var/lib/k0s/kubelet
+  --set csi.kubeletDirPath=/var/lib/k0s/kubelet \
+  --set cephCommandsTimeoutSeconds=90
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph-cluster rook-release/rook-ceph-cluster --version v1.18.8 --values rook-cluster-values.yaml
 kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo
+kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- ceph status
+# =============================================================================
+# =============================================================================
+# =============================================================================
 ~~~
 
 Netoyage de rook-ceph
@@ -394,7 +403,7 @@ for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
     xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
 done
 
-helm uninstall --namespace rook-ceph rook-ceph-cluster
+helm delete --namespace rook-ceph rook-ceph-cluster
 kubectl delete namespaces rook-ceph
 kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
 kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
@@ -412,6 +421,8 @@ kubectl api-resources --verbs=list --namespaced -o name \
 for i in {1..4}; do
   vagrant ssh node$i -c "sudo rm -rf /var/lib/k0s/kubelet/rook-ceph"
   vagrant ssh node$i -c "sudo rm -rf /var/lib/rook"
+done
+for i in {1..4}; do
   vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
 done
 for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done

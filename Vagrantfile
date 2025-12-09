@@ -19,7 +19,7 @@ Vagrant.configure("2") do |config|
     libvirt.memory = VM_RAM
     # 6GB extra disk for OSD car à 5GB il ne veut pas l'installer
     libvirt.storage :file, :type => 'qcow2', name: "extradisk1", size: "10GB"
-    libvirt.storage :file, :type => 'qcow2', name: "extradisk2", size: "10GB"
+    # libvirt.storage :file, :type => 'qcow2', name: "extradisk2", size: "10GB"
     # libvirt.storage :file, :type => 'qcow2', name: "extradisk3", size: "1GB"
     # libvirt.storage :file, :type => 'qcow2', name: "extradisk4", size: "1GB"
   end
