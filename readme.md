@@ -425,6 +425,7 @@ for i in {1..4}; do
 done
 for i in {1..4}; do
   vagrant ssh node$i -c "sudo wipefs -a /dev/vd[b,c]"
+  # sudo dd if=/dev/urandom of=/dev/vdb bs=1M status=progress
 done
 for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done
 for i in {1..4}; do
