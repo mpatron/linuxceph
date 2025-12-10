@@ -395,6 +395,7 @@ kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-t
 Netoyage de rook-ceph
 
 ~~~bash
+# https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/ceph-teardown.md#delete-the-data-on-hosts
 source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
 helm ls --namespace rook-ceph
 helm delete --namespace rook-ceph rook-ceph
