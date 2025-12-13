@@ -143,6 +143,7 @@ k0sctl reset --config myk0scluster.yaml --debug
 for i in {1..4}; do
   echo "Restart node$i..."
   vagrant ssh node$i -c "ls -la /var/lib/k0s/kubelet"
+  vagrant ssh node$i -c "sudo shutdown -r now"
 done
 ~~~
 
@@ -349,14 +350,43 @@ spec:
 EOF
 done
 
+# recharger le scan des disques sur /dev/disk
+# sudo udevadm trigger
+# sudo udevadm settle
+
+cat <<EOF | kubectl apply -f -
+---
 apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
-  name: <pool-name>
-  namespace: <namespace>
+  name: pool-node2
+  namespace: openebs
 spec:
-  node: <node-name>
-  disks: ["/dev/disk/by-id/<id>"]
+  node: node2.jobjects.net
+  disks: ["uring:///dev/disk/by-path/pci-0000:00:04.0"]
+EOF
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: "openebs.io/v1beta3"
+kind: DiskPool
+metadata:
+  name: pool-node3
+  namespace: openebs
+spec:
+  node: node3.jobjects.net
+  disks: ["uring:///dev/disk/by-path/pci-0000:00:04.0"]
+EOF
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: "openebs.io/v1beta3"
+kind: DiskPool
+metadata:
+  name: pool-node4
+  namespace: openebs
+spec:
+  node: node4.jobjects.net
+  disks: ["uring:///dev/disk/by-path/pci-0000:00:04.0"]
+EOF
 
 kubectl get storageclass
 kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
