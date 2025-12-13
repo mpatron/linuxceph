@@ -200,6 +200,8 @@
     value: 1024
     state: present
     reload: yes
+- name: "== OpenEBS == Définir nr_hugepages à 1024"
+  ansible.builtin.command: "echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
 
 # - name: Copy proxy.sh
 #   ansible.builtin.copy:
