@@ -321,6 +321,31 @@ helm upgrade --install openebs --namespace openebs --create-namespace --version 
   --set zfs-localpv.zfsNode.kubeletDir=/var/lib/k0s/kubelet \
   --set mayastor.csi.node.kubeletDir=/var/lib/k0s/kubelet
 
+for i in {2..4}; do
+  kubectl label node node$i.jobjects.net openebs.io/engine=mayastor
+done
+kubectl get dsp -n openebs
+for i in {1..4}; do
+  vagrant ssh node$i -c "echo vm.nr_hugepages = 1024 | sudo tee -a /etc/sysctl.conf"
+  vagrant ssh node$i -c "echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
+  vagrant ssh node$i -c "sudo yum install -y nvme-cli && sudo modprobe nvme-fabrics && sudo modprobe nvme-tcp"
+done
+
+for i in {2..4}; do
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: openebs.io/v1beta3
+kind: DiskPool
+metadata:
+  name: pool-node$i
+  namespace: openebs
+spec:
+  node: node$i.jobjects.net
+  disks:
+    - "uring:///dev/vdb"
+EOF
+done
+
 kubectl get storageclass
 kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
