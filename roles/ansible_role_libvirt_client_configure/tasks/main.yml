@@ -176,6 +176,24 @@
     group: "{{ ansible_role_libvirt_client_configure_adminuser }}"
     mode: '0700'
 
+# OpenEBS NVMe dependency
+- name: "== OpenEBS == Install nvme-cli for openebs"
+  ansible.builtin.dnf:
+    name:
+      - nvme-cli
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: "== OpenEBS == Copy id_ed25519"
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/nvme.conf"
+    dest: "/etc/modules-load.d/nvme.conf"
+    owner: "root"
+    group: "root"
+    mode: '0644'
+- name: "== OpenEBS == Restart systemd-modules-load service"
+  ansible.builtin.service:
+    name: systemd-modules-load
+    state: restarted
 
 # - name: Copy proxy.sh
 #   ansible.builtin.copy:

@@ -12,7 +12,7 @@
         swap_file_state: 'absent'
 
   tasks:
-    - name: Printing Fact Variables for the cluster nodes
+    - name: "== Vagrant provisionning == Printing Fact Variables for the cluster nodes"
       ansible.builtin.debug:
         msg: "The value of OS Family is {{ item.prop }} [ {{ item.value }} ]"
       with_items:
@@ -22,7 +22,7 @@
     - name: Définir le fuseau horaire sur Europe/Paris
       community.general.timezone:
         name: Europe/Paris
-    - name: Install the latest version of podman
+    - name: "== Vagrant provisionning == Install the latest version of podman"
       ansible.builtin.dnf:
         name:
           - vim

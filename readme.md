@@ -349,6 +349,15 @@ spec:
 EOF
 done
 
+apiVersion: "openebs.io/v1beta3"
+kind: DiskPool
+metadata:
+  name: <pool-name>
+  namespace: <namespace>
+spec:
+  node: <node-name>
+  disks: ["/dev/disk/by-id/<id>"]
+
 kubectl get storageclass
 kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
