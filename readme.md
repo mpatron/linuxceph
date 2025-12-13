@@ -305,6 +305,8 @@ done
 ## OpenESB
 
 ~~~bash
+source ~/venv/bin/activate && export KUBECONFIG=~/.kube/k0s-kubeconfig
+
 helm repo add openebs https://openebs.github.io/openebs
 helm repo update
 helm search repo openebs/openebs --versions | head -n 5
@@ -328,8 +330,9 @@ kubectl get dsp -n openebs
 for i in {1..4}; do
   vagrant ssh node$i -c "echo vm.nr_hugepages = 1024 | sudo tee -a /etc/sysctl.conf"
   vagrant ssh node$i -c "echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages"
-  vagrant ssh node$i -c "sudo yum install -y nvme-cli && sudo modprobe nvme-fabrics && sudo modprobe nvme-tcp"
+  vagrant ssh node$i -c "sudo yum install -y nvme-cli && sudo modprobe nvme-fabrics && sudo modprobe nvme-tcp && sudo modprobe nvme-core"
 done
+for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done
 
 for i in {2..4}; do
 cat <<EOF | kubectl apply -f -
