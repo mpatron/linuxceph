@@ -194,6 +194,12 @@
   ansible.builtin.service:
     name: systemd-modules-load
     state: restarted
+- name: "== OpenEBS == Augmenter la taille hugepages-2048kB"
+  ansible.posix.sysctl:
+    name: vm.nr_hugepages
+    value: 1024
+    state: present
+    reload: yes
 
 # - name: Copy proxy.sh
 #   ansible.builtin.copy:
