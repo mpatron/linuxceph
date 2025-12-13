@@ -342,7 +342,7 @@ metadata:
 spec:
   node: node$i.jobjects.net
   disks:
-    - "uring:///dev/vdb"
+    - "/dev/vdb"
 EOF
 done
 
