@@ -335,6 +335,12 @@ for i in {1..4}; do
 done
 for i in {1..4}; do vagrant ssh node$i -c "sudo shutdown -r now"; done
 
+sudo udevadm trigger
+sudo udevadm settle
+sudo udevadm info --query=all --name=/dev/vdb
+lsmod | grep nvme
+
+
 for i in {2..4}; do
 cat <<EOF | kubectl apply -f -
 ---
