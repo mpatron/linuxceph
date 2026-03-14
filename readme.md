@@ -451,7 +451,7 @@ k0sctl apply --config myk0scluster.yaml
 # On récupère tout de suite le kubeconfig
 k0sctl kubeconfig --config myk0scluster.yaml > ~/.kube/k0s-kubeconfig && export KUBECONFIG=~/.kube/k0s-kubeconfig && kubectl get all -A && kubectl top nodes
 helm repo update
-helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 79.12.0
+helm upgrade --install prometheus --namespace prometheus --create-namespace prometheus-community/kube-prometheus-stack --version 81.6.1
 # Get Grafana 'admin' user password by running:
 kubectl --namespace prometheus get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 helm upgrade --install --namespace rook-ceph --create-namespace rook-ceph rook-release/rook-ceph --version v1.18.8 \

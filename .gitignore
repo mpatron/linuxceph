@@ -27,3 +27,5 @@ derby.log
 *.exclude
 
 myk0scluster.yaml
+
+tmp
